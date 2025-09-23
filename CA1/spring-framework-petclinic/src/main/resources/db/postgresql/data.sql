@@ -1,9 +1,9 @@
-INSERT INTO vets VALUES (1, 'James', 'Carter') ON CONFLICT DO NOTHING;
-INSERT INTO vets VALUES (2, 'Helen', 'Leary') ON CONFLICT DO NOTHING;
-INSERT INTO vets VALUES (3, 'Linda', 'Douglas') ON CONFLICT DO NOTHING;
-INSERT INTO vets VALUES (4, 'Rafael', 'Ortega') ON CONFLICT DO NOTHING;
-INSERT INTO vets VALUES (5, 'Henry', 'Stevens') ON CONFLICT DO NOTHING;
-INSERT INTO vets VALUES (6, 'Sharon', 'Jenkins') ON CONFLICT DO NOTHING;
+INSERT INTO vets VALUES (1, 'James', 'Carter', 'A1234567') ON CONFLICT DO NOTHING;
+INSERT INTO vets VALUES (2, 'Helen', 'Leary', 'G1234568') ON CONFLICT DO NOTHING;
+INSERT INTO vets VALUES (3, 'Linda', 'Douglas', 'B1234527') ON CONFLICT DO NOTHING;
+INSERT INTO vets VALUES (4, 'Rafael', 'Ortega', 'A12564567') ON CONFLICT DO NOTHING;
+INSERT INTO vets VALUES (5, 'Henry', 'Stevens', 'A1234567') ON CONFLICT DO NOTHING;
+INSERT INTO vets VALUES (6, 'Sharon', 'Jenkins', 'C000000') ON CONFLICT DO NOTHING;
 
 INSERT INTO specialties VALUES (1, 'radiology') ON CONFLICT DO NOTHING;
 INSERT INTO specialties VALUES (2, 'surgery') ON CONFLICT DO NOTHING;
@@ -22,16 +22,16 @@ INSERT INTO types VALUES (4, 'snake') ON CONFLICT DO NOTHING;
 INSERT INTO types VALUES (5, 'bird') ON CONFLICT DO NOTHING;
 INSERT INTO types VALUES (6, 'hamster') ON CONFLICT DO NOTHING;
 
-INSERT INTO owners VALUES (1, 'George', 'Franklin', '110 W. Liberty St.', 'Madison', '6085551023', '000000001');
-INSERT INTO owners VALUES (2, 'Betty', 'Davis', '638 Cardinal Ave.', 'Sun Prairie', '6085551749', '000000002');
-INSERT INTO owners VALUES (3, 'Eduardo', 'Rodriquez', '2693 Commerce St.', 'McFarland', '6085558763', '000000003');
-INSERT INTO owners VALUES (4, 'Harold', 'Davis', '563 Friendly St.', 'Windsor', '6085553198', '000000004');
-INSERT INTO owners VALUES (5, 'Peter', 'McTavish', '2387 S. Fair Way', 'Madison', '6085552765', '000000005');
-INSERT INTO owners VALUES (6, 'Jean', 'Coleman', '105 N. Lake St.', 'Monona', '6085552654', '000000006');
-INSERT INTO owners VALUES (7, 'Jeff', 'Black', '1450 Oak Blvd.', 'Monona', '6085555387', '000000007');
-INSERT INTO owners VALUES (8, 'Maria', 'Escobito', '345 Maple St.', 'Madison', '6085557683', '000000008');
-INSERT INTO owners VALUES (9, 'David', 'Schroeder', '2749 Blackhawk Trail', 'Madison', '6085559435', '000000009');
-INSERT INTO owners VALUES (10, 'Carlos', 'Estaban', '2335 Independence La.', 'Waunakee', '6085555487', '000000010');
+INSERT INTO owners VALUES (1, 'George', 'Franklin', '110 W. Liberty St.', 'Madison', '6085551023', '000000001') ON CONFLICT DO NOTHING;
+INSERT INTO owners VALUES (2, 'Betty', 'Davis', '638 Cardinal Ave.', 'Sun Prairie', '6085551749', '000000002') ON CONFLICT DO NOTHING;
+INSERT INTO owners VALUES (3, 'Eduardo', 'Rodriquez', '2693 Commerce St.', 'McFarland', '6085558763', '000000003') ON CONFLICT DO NOTHING;
+INSERT INTO owners VALUES (4, 'Harold', 'Davis', '563 Friendly St.', 'Windsor', '6085553198', '000000004') ON CONFLICT DO NOTHING;
+INSERT INTO owners VALUES (5, 'Peter', 'McTavish', '2387 S. Fair Way', 'Madison', '6085552765', '000000005') ON CONFLICT DO NOTHING;
+INSERT INTO owners VALUES (6, 'Jean', 'Coleman', '105 N. Lake St.', 'Monona', '6085552654', '000000006') ON CONFLICT DO NOTHING;
+INSERT INTO owners VALUES (7, 'Jeff', 'Black', '1450 Oak Blvd.', 'Monona', '6085555387', '000000007') ON CONFLICT DO NOTHING;
+INSERT INTO owners VALUES (8, 'Maria', 'Escobito', '345 Maple St.', 'Madison', '6085557683', '000000008') ON CONFLICT DO NOTHING;
+INSERT INTO owners VALUES (9, 'David', 'Schroeder', '2749 Blackhawk Trail', 'Madison', '6085559435', '000000009') ON CONFLICT DO NOTHING;
+INSERT INTO owners VALUES (10, 'Carlos', 'Estaban', '2335 Independence La.', 'Waunakee', '6085555487', '000000010') ON CONFLICT DO NOTHING;
 
 INSERT INTO pets VALUES (1, 'Leo', '2000-09-07', 1, 1) ON CONFLICT DO NOTHING;
 INSERT INTO pets VALUES (2, 'Basil', '2002-08-06', 6, 2) ON CONFLICT DO NOTHING;
