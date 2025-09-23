@@ -59,7 +59,7 @@ public class JdbcVetRepositoryImpl implements VetRepository {
     public Collection<Vet> findAll() {
         // Retrieve the list of all vets.
         List<Vet> vets = new ArrayList<>(this.jdbcClient.sql(
-                "SELECT id, first_name, last_name FROM vets ORDER BY last_name,first_name")
+                "SELECT id, first_name, last_name, professionalLicenseNumber FROM vets ORDER BY last_name,first_name")
             .query(BeanPropertyRowMapper.newInstance(Vet.class))
             .list());
 
