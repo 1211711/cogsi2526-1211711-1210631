@@ -45,7 +45,7 @@ The commands used to implement this assignment were:
     1. ```git tag -a 1.2.0```
     2. ```git push origin 1.2.0```
 10. Revert commit
-    1. TODO for revert
+    1. TODO
 
 **Q1:** Show which is the repository’s default branch and when was its latest commit made
 
