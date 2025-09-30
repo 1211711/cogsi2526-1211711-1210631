@@ -1,4 +1,4 @@
-INSERT INTO vets VALUES (1, 'James', 'Carter', 'A1234567', 'james@gmail.com');
+INSERT INTO vets VALUES (1, 'James', 'Carter', 'A1234567', 'james_carter@gmail.com');
 INSERT INTO vets VALUES (2, 'Helen', 'Leary', 'G1234568', 'helen@gmail.com');
 INSERT INTO vets VALUES (3, 'Linda', 'Douglas', 'B1234527', 'douglas@gmail.com');
 INSERT INTO vets VALUES (4, 'Rafael', 'Ortega', 'A12564567', 'rafaelortega@gmail.com');
