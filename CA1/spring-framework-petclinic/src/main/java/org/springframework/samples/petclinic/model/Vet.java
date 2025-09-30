@@ -46,6 +46,8 @@ public class Vet extends Person {
 
     private String professionalLicenseNumber;
 
+    private String email;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "vet_specialties", joinColumns = @JoinColumn(name = "vet_id"),
         inverseJoinColumns = @JoinColumn(name = "specialty_id"))
@@ -83,5 +85,13 @@ public class Vet extends Person {
 
     public void setProfessionalLicenseNumber(String professionalLicenseNumber) {
         this.professionalLicenseNumber = professionalLicenseNumber;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

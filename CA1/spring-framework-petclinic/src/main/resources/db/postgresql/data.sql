@@ -1,9 +1,11 @@
-INSERT INTO vets VALUES (1, 'James', 'Carter', 'A1234567') ON CONFLICT DO NOTHING;
-INSERT INTO vets VALUES (2, 'Helen', 'Leary', 'G1234568') ON CONFLICT DO NOTHING;
-INSERT INTO vets VALUES (3, 'Linda', 'Douglas', 'B1234527') ON CONFLICT DO NOTHING;
-INSERT INTO vets VALUES (4, 'Rafael', 'Ortega', 'A12564567') ON CONFLICT DO NOTHING;
-INSERT INTO vets VALUES (5, 'Henry', 'Stevens', 'A1234567') ON CONFLICT DO NOTHING;
-INSERT INTO vets VALUES (6, 'Sharon', 'Jenkins', 'C000000') ON CONFLICT DO NOTHING;
+-- noinspection SqlNoDataSourceInspectionForFile
+
+INSERT INTO vets VALUES (1, 'James', 'Carter', 'A1234567', 'james@gmail.com') ON CONFLICT DO NOTHING;
+INSERT INTO vets VALUES (2, 'Helen', 'Leary', 'G1234568', 'helen@gmail.com') ON CONFLICT DO NOTHING;
+INSERT INTO vets VALUES (3, 'Linda', 'Douglas', 'B1234527', 'douglas@gmail.com') ON CONFLICT DO NOTHING;
+INSERT INTO vets VALUES (4, 'Rafael', 'Ortega', 'A12564567', 'rafaelortega@gmail.com') ON CONFLICT DO NOTHING;
+INSERT INTO vets VALUES (5, 'Henry', 'Stevens', 'A1234567', 'henry@gmail.com') ON CONFLICT DO NOTHING;
+INSERT INTO vets VALUES (6, 'Sharon', 'Jenkins', 'C000000', 'jenkins@gmail.com') ON CONFLICT DO NOTHING;
 
 INSERT INTO specialties VALUES (1, 'radiology') ON CONFLICT DO NOTHING;
 INSERT INTO specialties VALUES (2, 'surgery') ON CONFLICT DO NOTHING;

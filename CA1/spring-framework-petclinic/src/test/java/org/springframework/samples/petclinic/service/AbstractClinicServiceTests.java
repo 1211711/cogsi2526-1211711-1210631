@@ -175,6 +175,15 @@ abstract class AbstractClinicServiceTests {
     }
 
     @Test
+    void shouldFindVetEmail() {
+        Collection<Vet> vets = this.clinicService.findVets();
+
+        Vet vet = EntityUtils.getById(vets, Vet.class, 3);
+        assertThat(vet.getLastName()).isEqualTo("Douglas");
+        assertThat(vet.getEmail()).isEqualTo("douglas@gmail.com");
+    }
+
+    @Test
     @Transactional
     public void shouldAddNewVisitForPet() {
         Pet pet7 = this.clinicService.findPetById(7);

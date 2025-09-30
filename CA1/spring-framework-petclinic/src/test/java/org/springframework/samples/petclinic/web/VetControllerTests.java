@@ -40,10 +40,12 @@ class VetControllerTests {
         james.setFirstName("James");
         james.setLastName("Carter");
         james.setId(1);
+        james.setEmail("jamed@gmail.com");
         Vet helen = new Vet();
         helen.setFirstName("Helen");
         helen.setLastName("Leary");
         helen.setId(2);
+        helen.setEmail("jamed@gmail.com");
         Specialty radiology = new Specialty();
         radiology.setId(1);
         radiology.setName("radiology");
