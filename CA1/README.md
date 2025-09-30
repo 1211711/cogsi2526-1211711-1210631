@@ -174,45 +174,36 @@ The command used to implement this assignment were:
 | Feature                | **Git**                                          | **Mercurial (Hg)**                             | **SVN**                                        |
 |------------------------|--------------------------------------------------|------------------------------------------------|------------------------------------------------|
 | **Type**               | Distributed                                      | Distributed                                    | Centralized                                    |
-| **Ease of Use**        | Powerful but complex                            | Simpler and more user-friendly                 | Easiest for basic tasks                        |
 | **Branching**          | Lightweight, flexible branches                  | Named branches and bookmarks                   | Directory-based (manual copies)               |
 | **History Rewriting**  | Allowed (`rebase`, `reset`, etc.)               | Discouraged (history is immutable)             | Not supported                                  |
 | **Offline Support**    | Full                                             | Full                                           | Very limited                                   |
 | **Staging Area**       | Yes (`git add` to stage changes)                | Yes (`hg add`, auto-stages edits)              | No real staging (only new files need `add`)    |
 | **Tagging**            | Native, lightweight (`git tag`)                 | Native (`hg tag`)                              | Simulated using `svn copy` to a `/tags` folder |
-| **Popularity**         | Industry standard, used by GitHub, GitLab, etc. | Declining, but clean design                    | Still used in some enterprise/legacy projects  |
 
 ---
 
 #### Git vs Mercurial vs SVN – Command Equivalents & Descriptions
 
-| **Git Command**                                 | **Mercurial (Hg)**                              | **SVN**                                               | **Description** |
-|--------------------------------------------------|--------------------------------------------------|--------------------------------------------------------|------------------|
-| `git init`                                       | `hg init`                                       | `svnadmin create` (repo) + `svn checkout` (client)     | Initialize a repository (local for Git/Hg, server+client in SVN) |
-| `git clone <url>`                                | `hg clone <url>`                                | `svn checkout <url>`                                  | Clone or checkout a remote repository |
-| `git status`                                     | `hg status`                                     | `svn status`                                          | Show current working directory state |
-| `git add <file>`                                 | `hg add <file>`                                 | `svn add <file>`                                      | Stage a new file (only needed for **new** files in SVN) |
-| `git commit -m "msg"`                            | `hg commit -m "msg"`                            | `svn commit -m "msg"`                                 | Save changes (Git/Hg to local repo, SVN directly to remote) |
-| `git log`                                        | `hg log`                                        | `svn log`                                             | Show commit history |
-| `git diff`                                       | `hg diff`                                       | `svn diff`                                            | Show changes in working directory |
-| `git revert <commit>`                            | `hg backout <rev>`                              | `svn merge -c -<rev> . && svn commit -m "Revert"`     | Revert a previous commit (Hg keeps clean history, SVN uses reverse merge) |
-| `git tag -a 1.1.0 -m "msg"`                      | `hg tag 1.1.0 -m "msg"`                         | `svn copy trunk tags/1.1.0 -m "Tag 1.1.0"`            | Tag a version. **SVN does this by copying code to a `/tags` folder** |
-| `git branch feature-x`                           | `hg branch feature-x`                           | `svn copy trunk branches/feature-x -m "Branch"`       | Create a branch. In SVN, it's a **copy to `/branches`** |
-| `git checkout feature-x`                         | `hg update feature-x`                           | `svn switch ^/branches/feature-x`                     | Switch to another branch (working copy update) |
-| `git push`                                       | `hg push`                                       | `svn commit`                                          | Send local commits to remote (SVN commits go directly to remote) |
-| `git pull`                                       | `hg pull -u`                                    | `svn update`                                          | Download and integrate remote changes |
+| **Git Command**             | **Mercurial (Hg)**      | **SVN**                                            | **Description**                                                                                           |
+|-----------------------------|-------------------------|----------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| `git init`                  | `hg init`               | `svnadmin create` (repo) + `svn checkout` (client) | Initialize a repository (local for Git/Hg, server+client in SVN)                                          |
+| `git clone <url>`           | `hg clone <url>`        | `svn checkout <url>`                               | Clone or checkout a remote repository                                                                     |
+| `git status`                | `hg status`             | `svn status`                                       | Show current working directory state                                                                      |
+| `git add <file>`            | `hg add <file>`         | `svn add <file>`                                   | Stage a new file (only needed for **new** files in SVN and Hg)                                            |
+| `git commit -m "msg"`       | `hg commit -m "msg"`    | `svn commit -m "msg"`                              | Save changes (Git/Hg to local repo, SVN directly to remote). Git also supports -am while the others don't |
+| `git log`                   | `hg log`                | `svn log`                                          | Show commit history                                                                                       |
+| `git revert <commit>`       | `hg backout <rev>`      | `svn merge -c -<rev> . && svn commit -m "Revert"`  | Revert a previous commit (Hg keeps clean history, SVN uses reverse merge)                                 |
+| `git tag -a 1.1.0 -m "msg"` | `hg tag 1.1.0 -m "msg"` | `svn copy trunk tags/1.1.0 -m "Tag 1.1.0"`         | Tag a version. **SVN does this by copying code to a `/tags` folder**                                      |
+| `git switch -c feature-x`   | `hg branch feature-x`   | `svn copy trunk branches/feature-x -m "Branch"`    | Create a branch. In SVN, it's a **copy to `/branches`**                                                   |
+| `git branch`                | `hg bookmark`           | `svn list ^/branches/`                                         | List branches                                                                                             |
+| `git push`                  | `hg push`               | `svn commit`                                       | Send local commits to remote (SVN commits go directly to remote)                                          |
+| `git pull`                  | `hg pull -u`            | `svn update`                                       | Download and integrate remote changes                                                                     |
 
 ---
 
 #### Additional Notes
 
-- **Git & Mercurial use a staging area** (you `add` changes before committing).  
-  SVN **commits all changes directly**, so **you only need `svn add` for new files**.
-
-- **Tagging in SVN** is not a true tag — it's a convention using a `copy` of the current project into a `/tags` directory:
-  ```bash
-  svn copy ^/trunk ^/tags/1.1.0 -m "Tag 1.1.0"
-
+- Hg and Mercurial only need `hg add <file>` or `svn add <file>` if the file is new unlike git, which needs it even if the file already exists.  
 
 ## Developers
 
