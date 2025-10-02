@@ -80,3 +80,11 @@ task copySource(type: Copy) {
     from 'src'
     into 'backup'
 }
+
+
+task zipBackup(type: Zip, dependsOn: copySource) {
+    from 'backup'
+    archiveFileName = 'Backup.zip'
+
+    destinationDirectory = file('build/zips')
+}
