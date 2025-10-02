@@ -51,3 +51,14 @@ task runClient(type:JavaExec, dependsOn: classes){
 
     args 'localhost', '59001'
 }
+
+task runServer(type:JavaExec, dependsOn: classes) {
+    group = "DevOps"
+    description = "Launches a chat client that connects to a server on localhost:59001 "
+
+    classpath = sourceSets.main.runtimeClasspath
+
+    mainClass = 'basic_demo.ChatServerApp'
+
+    args '59001'
+}
