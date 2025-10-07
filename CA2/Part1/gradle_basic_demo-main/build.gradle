@@ -3,6 +3,8 @@ plugins {
     id 'application'
 }
 
+def junitVersion = '5.8.1'
+
 // Configure Java toolchain
 java {
     toolchain {
@@ -25,6 +27,8 @@ dependencies {
     // Use Apache Log4J for logging
     implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.2'
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.2'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
 }
  
 jar {
@@ -50,4 +54,31 @@ task runClient(type:JavaExec, dependsOn: classes){
     mainClass = 'basic_demo.ChatClientApp'
 
     args 'localhost', '59001'
+}
+
+task runServer(type:JavaExec, dependsOn: classes) {
+    group = "DevOps"
+    description = "Launches a chat server on localhost:59001 "
+
+    classpath = sourceSets.main.runtimeClasspath
+
+    mainClass = 'basic_demo.ChatServerApp'
+
+    args '59001'
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+task copySource(type: Copy) {
+    from 'src'
+    into 'backup'
+}
+
+task zipBackup(type: Zip, dependsOn: copySource) {
+    from 'backup'
+    archiveFileName = 'Backup.zip'
+
+    destinationDirectory = file('build/zips')
 }
