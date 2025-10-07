@@ -42,32 +42,56 @@ springBoot {
 }
 
 
-def targetDirProvider = providers.gradleProperty("dirPath") ?: null
-
-tasks.register('validateDirectory') {
-    def deploymentDirPath = targetDirProvider
-    if (deploymentDirPath == null) {
-        throw new GradleException("Missing directory path argument: use -PdirPath")
-    }
-
-    def dir = file(deploymentDirPath)
-    if (!dir.exists() || !dir.isDirectory()) {
-        throw new GradleException("Directory doesn't exist or is not a directory: $deploymentDirPath")
-    }
-}
-
+def targetDirPath = providers.gradleProperty("dirPath") ?: null
 
 tasks.register('cleanDeploymentDir', Delete) {
-    dependsOn 'validateDirectory'
+    //dependsOn 'validateDirectory'
     description = 'Cleans a specific version-controlled directory using -PdirPath'
     group = 'Cleanup'
 
-    def deploymentDirPath = targetDirProvider
+    def deploymentDirPath = targetDirPath
+
+    if(deploymentDirPath == null) return
+
     delete fileTree(deploymentDirPath) {
         include '**/*'
     }
 
     doFirst {
         println "Cleaning contents of: $deploymentDirPath"
+    }
+}
+
+tasks.register('copyArtifactToDir', Copy) {
+    dependsOn 'cleanDeploymentDir'
+    dependsOn 'bootJar'
+
+    from layout.buildDirectory.file("libs/${project.name}-${project.version}.jar")
+
+    def deploymentDir = targetDirPath
+    into deploymentDir
+
+    doFirst {
+        logger.lifecycle("Copying application artifact to: $deploymentDir")
+    }
+}
+
+tasks.register('copyRuntimeExternalDependencies', Copy) {
+    dependsOn 'copyArtifactToDir'
+
+    def subset = providers.gradleProperty("subset") ?: null
+
+    if(subset.present) {
+        from configurations.runtimeClasspath.filter { it.name.endsWith(subset.get())}
+    } else {
+        println "Subset is null, all of the lib files will be copied"
+        from configurations.runtimeClasspath
+    }
+
+    def libDir = "${targetDirPath.get()}/lib"
+    into libDir
+
+    doFirst {
+        logger.lifecycle("Copying runtime dependencies to: $libDir")
     }
 }
