@@ -61,7 +61,7 @@ The steps used to implement this assignment were:
         4. The `args` keyword specifies the command-line arguments that will be passed to the program when it runs.
            In this case used to specify the port used
     3. The new task created can replace the initial command
-       `ava -cp build/libs/basic_demo-0.1.0.jar basic_demo.ChatServerApp <server port>` by simply running
+       `java -cp build/libs/basic_demo-0.1.0.jar basic_demo.ChatServerApp <server port>` by simply running
        `./gradlew runServer`
     4. Commit this change, following small incremental commits pattern (Eg. _**"Add runServer task to gradle #11"**_ )
 
@@ -76,8 +76,18 @@ The steps used to implement this assignment were:
             ...
         }
         ```
-        1. To make the file easier to maintain and to be more consistent we can define a variable for the junit version
-           and then use it like `${junitVersion}"`
+        1. To make the file easier to maintain and to be more consistent we defined a variable for the junit version
+           and then used it like `${junitVersion}"`:
+            ```gradle
+            def junitVersion = '5.8.1'
+            ...
+            dependencies {
+                ...
+                testImplementation 'org.junit.jupiter:junit-jupiter-api:${junitVersion}'
+                testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:${junitVersion}' 
+                ...
+            }
+            ```
     3. Add a task in [build.gradle](./gradle_basic_demo-main/build.gradle) in order to run the tests from the _junit_
        framework:
         ```gradle
@@ -125,7 +135,8 @@ The steps used to implement this assignment were:
            task finishes, ensuring the backup folder exists
         3. The `from` keyword defines the source directory to include in the ZIP, in this case `backup`
         4. The `archiveFileName` property sets the name of the ZIP file to be created as `Backup.zip`
-        5. The `destinationDirectory` property specifies where the ZIP file will be saved, in this case in `build/zips`
+        5. The `destinationDirectory` property specifies where the ZIP file will be saved, in this case in `build/zips`.
+           If the folder doesn't exist it will be automatically created.
 
     3. Test the task by running ```./gradlew zipBackup```, this will run firstly the `copySource` task and only after
        will run the `zipBackup` task.
