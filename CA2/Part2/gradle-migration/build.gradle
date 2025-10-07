@@ -45,21 +45,17 @@ springBoot {
 def targetDirPath = providers.gradleProperty("dirPath") ?: null
 
 tasks.register('cleanDeploymentDir', Delete) {
-    //dependsOn 'validateDirectory'
     description = 'Cleans a specific version-controlled directory using -PdirPath'
     group = 'Cleanup'
 
     def deploymentDirPath = targetDirPath
 
-    if(deploymentDirPath == null) return
-
-    delete fileTree(deploymentDirPath) {
-        include '**/*'
+    if(deploymentDirPath == null) {
+        throw new GradleException("The deployment directory path is not populated") //TODO: validate exception
     }
 
-    doFirst {
-        println "Cleaning contents of: $deploymentDirPath"
-    }
+    println "Cleaning contents of: $deploymentDirPath"
+    delete deploymentDirPath
 }
 
 tasks.register('copyArtifactToDir', Copy) {
