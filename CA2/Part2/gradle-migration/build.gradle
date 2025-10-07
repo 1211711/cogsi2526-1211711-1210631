@@ -40,3 +40,34 @@ java {
 springBoot {
     mainClass = 'payroll.PayrollApplication'
 }
+
+
+def targetDirProvider = providers.gradleProperty("dirPath") ?: null
+
+tasks.register('validateDirectory') {
+    def deploymentDirPath = targetDirProvider
+    if (deploymentDirPath == null) {
+        throw new GradleException("Missing directory path argument: use -PdirPath")
+    }
+
+    def dir = file(deploymentDirPath)
+    if (!dir.exists() || !dir.isDirectory()) {
+        throw new GradleException("Directory doesn't exist or is not a directory: $deploymentDirPath")
+    }
+}
+
+
+tasks.register('cleanDeploymentDir', Delete) {
+    dependsOn 'validateDirectory'
+    description = 'Cleans a specific version-controlled directory using -PdirPath'
+    group = 'Cleanup'
+
+    def deploymentDirPath = targetDirProvider
+    delete fileTree(deploymentDirPath) {
+        include '**/*'
+    }
+
+    doFirst {
+        println "Cleaning contents of: $deploymentDirPath"
+    }
+}
