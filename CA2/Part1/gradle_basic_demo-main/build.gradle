@@ -58,7 +58,7 @@ task runClient(type:JavaExec, dependsOn: classes){
 
 task runServer(type:JavaExec, dependsOn: classes) {
     group = "DevOps"
-    description = "Launches a chat client that connects to a server on localhost:59001 "
+    description = "Launches a chat server on localhost:59001 "
 
     classpath = sourceSets.main.runtimeClasspath
 
@@ -67,20 +67,14 @@ task runServer(type:JavaExec, dependsOn: classes) {
     args '59001'
 }
 
-
 tasks.named('test', Test) {
     useJUnitPlatform()
-    maxHeapSize = '1G'
-    testLogging {
-        events "passed"
-    }
 }
 
 task copySource(type: Copy) {
     from 'src'
     into 'backup'
 }
-
 
 task zipBackup(type: Zip, dependsOn: copySource) {
     from 'backup'
