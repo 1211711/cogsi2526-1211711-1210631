@@ -4,34 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2b16bc94-4fbc-42b6-abaf-3435050c9d7a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../../Part1/gradle_basic_demo-main/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../Part1/gradle_basic_demo-main/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build.gradle" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/Employee.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/EmployeeController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/EmployeeModelAssembler.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/EmployeeNotFoundAdvice.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/EmployeeNotFoundException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/EmployeeRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/LoadDatabase.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/Order.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/OrderController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/OrderModelAssembler.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/OrderNotFoundException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/OrderRepository.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/PayrollApplication.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/RootController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/payroll/Status.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/test/java/org/example/AppTest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/gradle.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradle/libs.versions.toml" beforeDir="false" afterPath="$PROJECT_DIR$/gradle/libs.versions.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/settings.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle" afterDir="false" />
+    <list default="true" id="2b16bc94-4fbc-42b6-abaf-3435050c9d7a" name="Changes" comment="Init project with inital gradle">
+      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -137,11 +111,24 @@
       <updated>1759858769356</updated>
       <workItem from="1759858770400" duration="5677000" />
       <workItem from="1759867398168" duration="736000" />
-      <workItem from="1759868586754" duration="357000" />
+      <workItem from="1759868586754" duration="444000" />
     </task>
+    <task id="LOCAL-00001" summary="Init project with inital gradle">
+      <option name="closed" value="true" />
+      <created>1759868990815</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1759868990815</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Init project with inital gradle" />
+    <option name="LAST_COMMIT_MESSAGE" value="Init project with inital gradle" />
   </component>
 </project>
