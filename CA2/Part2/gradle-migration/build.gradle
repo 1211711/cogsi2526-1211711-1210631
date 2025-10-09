@@ -4,6 +4,7 @@
  * This is a general purpose Gradle build.
  * Learn more about Gradle by exploring our Samples at https://docs.gradle.org/9.1.0/samples
  */
+import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     id 'java'
@@ -42,23 +43,27 @@ springBoot {
 }
 
 
-def targetDirPath = providers.gradleProperty("dirPath") ?: null
+def targetDirPath = {
+    def path = providers.gradleProperty("dirPath")
+
+    if(!path.present) {
+        throw new GradleException("The deployment directory path variable is not populated")
+    }
+
+    return path.get()
+}
 
 tasks.register('cleanDeploymentDir', Delete) {
     description = 'Cleans a specific version-controlled directory using -PdirPath'
-    group = 'Cleanup'
 
     def deploymentDirPath = targetDirPath
-
-    if(deploymentDirPath == null) {
-        throw new GradleException("The deployment directory path is not populated") //TODO: validate exception
-    }
 
     println "Cleaning contents of: $deploymentDirPath"
     delete deploymentDirPath
 }
 
 tasks.register('copyArtifactToDir', Copy) {
+    description = 'Generates a jar and copies it to a given directory'
     dependsOn 'cleanDeploymentDir'
     dependsOn 'bootJar'
 
@@ -73,21 +78,37 @@ tasks.register('copyArtifactToDir', Copy) {
 }
 
 tasks.register('copyRuntimeExternalDependencies', Copy) {
-    dependsOn 'copyArtifactToDir'
-
+    description = 'Copies a subset of runtime dependencies to /libs in a given directory'
     def subset = providers.gradleProperty("subset") ?: null
 
     if(subset.present) {
-        from configurations.runtimeClasspath.filter { it.name.endsWith(subset.get())}
+        from (configurations.runtimeClasspath) {
+            include "**/*${subset.get()}"
+        }
     } else {
         println "Subset is null, all of the lib files will be copied"
         from configurations.runtimeClasspath
     }
 
-    def libDir = "${targetDirPath.get()}/lib"
+    def libDir = "${targetDirPath()}/lib"
     into libDir
 
     doFirst {
         logger.lifecycle("Copying runtime dependencies to: $libDir")
     }
+}
+
+tasks.register("copyConfigurationFiles", Copy) {
+    description = "Copies the configuration files to a given directory and patches them"
+
+    from(sourceSets.main.resources.sourceDirectories)
+    {
+        include "*.properties"
+        filter(ReplaceTokens, tokens: [
+                "version":  providers.gradleProperty("version").orNull
+        ])
+    }
+
+    def configDir = "${targetDirPath()}/config"
+    into configDir
 }
