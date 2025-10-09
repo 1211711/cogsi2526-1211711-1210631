@@ -4,12 +4,14 @@
  * This is a general purpose Gradle build.
  * Learn more about Gradle by exploring our Samples at https://docs.gradle.org/9.1.0/samples
  */
+import org.apache.tools.ant.filters.ReplaceTokens
+import java.time.Instant
 
 plugins {
     id 'java'
+    id 'application'
     id 'org.springframework.boot' version '3.2.5'
     id 'io.spring.dependency-management' version "1.1.5"
-    id 'application'
 }
 
 group = 'org.springframework.guides'
@@ -44,9 +46,8 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-    intTestImplementation 'org.springframework.boot:spring-boot-starter-test'
-    intTestImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-    intTestRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
 
     runtimeOnly 'com.h2database:h2'
 }
@@ -62,29 +63,35 @@ springBoot {
     mainClass = 'payroll.PayrollApplication'
 }
 
-def targetDirPath = providers.gradleProperty("dirPath") ?: null
+
+def targetDirPath = {
+    def path = providers.gradleProperty("dirPath")
+
+    if(!path.present) {
+        throw new GradleException("The deployment directory path variable is not populated")
+    }
+
+    return path.get()
+}
 
 tasks.register('cleanDeploymentDir', Delete) {
     description = 'Cleans a specific version-controlled directory using -PdirPath'
-    group = 'Cleanup'
 
-    def deploymentDirPath = targetDirPath
-
-    if (deploymentDirPath == null) {
-        throw new GradleException("The deployment directory path is not populated") //TODO: validate exception
-    }
+    def deploymentDirPath = targetDirPath()
 
     println "Cleaning contents of: $deploymentDirPath"
     delete deploymentDirPath
 }
 
 tasks.register('copyArtifactToDir', Copy) {
-    dependsOn 'cleanDeploymentDir'
+    description = 'Generates a jar and copies it to a given directory'
     dependsOn 'bootJar'
+
+    def deploymentDir = targetDirPath()
+    delete deploymentDir
 
     from layout.buildDirectory.file("libs/${project.name}-${project.version}.jar")
 
-    def deploymentDir = targetDirPath
     into deploymentDir
 
     doFirst {
@@ -93,18 +100,22 @@ tasks.register('copyArtifactToDir', Copy) {
 }
 
 tasks.register('copyRuntimeExternalDependencies', Copy) {
-    dependsOn 'copyArtifactToDir'
+    description = 'Copies a subset of runtime dependencies to /libs in a given directory'
+
+    def libDir = "${targetDirPath()}/lib"
+    delete libDir
 
     def subset = providers.gradleProperty("subset") ?: null
 
-    if (subset.present) {
-        from configurations.runtimeClasspath.filter { it.name.endsWith(subset.get()) }
+    if(subset.present) {
+        from (configurations.runtimeClasspath) {
+            include "**/*${subset.get()}"
+        }
     } else {
         println "Subset is null, all of the lib files will be copied"
         from configurations.runtimeClasspath
     }
 
-    def libDir = "${targetDirPath.get()}/lib"
     into libDir
 
     doFirst {
@@ -112,9 +123,35 @@ tasks.register('copyRuntimeExternalDependencies', Copy) {
     }
 }
 
-tasks.register('runArtifactJar', JavaExec) {
-    dependsOn 'installDist'
+tasks.register("copyConfigurationFiles", Copy) {
+    description = "Copies the configuration files to a given directory and patches them"
+
+    def configDir = "${targetDirPath()}/config"
+    delete configDir
+
+    from(sourceSets.main.resources.sourceDirectories)
+    {
+        include "*.properties"
+        filter(ReplaceTokens, tokens: [
+                "version":  project.version.toString(),
+                "buildTimestamp": Instant.now().toString()
+        ])
+    }
+
+    into configDir
+}
+
+tasks.register("fullDeployment") {
+    description = "Full deployment task that cleans a given directory, copies the artifact, runtime dependencies and configuration files"
+
+    dependsOn 'cleanDeploymentDir'
+    dependsOn 'copyArtifactToDir'
     dependsOn 'copyRuntimeExternalDependencies'
+    dependsOn 'copyConfigurationFiles'
+}
+
+tasks.register('runArtifactJar', JavaExec) {
+    dependsOn 'bootJar'
 
     if (System.properties['os.name'].toLowerCase().contains('windows')) {
         println "it's Windows"
@@ -122,7 +159,7 @@ tasks.register('runArtifactJar', JavaExec) {
         println System.properties['os.name'].toLowerCase()
     }
 
-    def jarDir = "${targetDirPath.get()}/${project.name}-${project.version}.jar"
+    def jarDir = "build/libs/${project.name}-${project.version}.jar"
 
     classpath = files(jarDir)
 
@@ -131,19 +168,13 @@ tasks.register('runArtifactJar', JavaExec) {
     }
 }
 
-tasks.register('runArtifact', Exec) {
+tasks.register('runArtifactScript', Exec) {
     dependsOn 'installDist'
 
-    def scriptDir = layout.buildDirectory.file("scripts")
-
     if (System.properties['os.name'].toLowerCase().contains('windows')) {
-        commandLine 'build/scripts/' + project.name + '.bat'
+        commandLine "build/install/${project.name}/bin/${project.name}.bat"
     } else {
-        commandLine "build/install/tut-rest/bin/tut-rest"
-    }
-
-    doFirst {
-        logger.lifecycle("Running the application artifact: $scriptDir")
+        commandLine "build/install/${project.name}/bin/${project.name}"
     }
 }
 
