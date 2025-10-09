@@ -6,6 +6,9 @@
  */
 import org.apache.tools.ant.filters.ReplaceTokens
 
+import java.time.Instant
+import java.time.LocalDateTime
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.5'
@@ -56,7 +59,7 @@ def targetDirPath = {
 tasks.register('cleanDeploymentDir', Delete) {
     description = 'Cleans a specific version-controlled directory using -PdirPath'
 
-    def deploymentDirPath = targetDirPath
+    def deploymentDirPath = targetDirPath()
 
     println "Cleaning contents of: $deploymentDirPath"
     delete deploymentDirPath
@@ -64,12 +67,13 @@ tasks.register('cleanDeploymentDir', Delete) {
 
 tasks.register('copyArtifactToDir', Copy) {
     description = 'Generates a jar and copies it to a given directory'
-    dependsOn 'cleanDeploymentDir'
     dependsOn 'bootJar'
+
+    def deploymentDir = targetDirPath()
+    delete deploymentDir
 
     from layout.buildDirectory.file("libs/${project.name}-${project.version}.jar")
 
-    def deploymentDir = targetDirPath
     into deploymentDir
 
     doFirst {
@@ -79,6 +83,10 @@ tasks.register('copyArtifactToDir', Copy) {
 
 tasks.register('copyRuntimeExternalDependencies', Copy) {
     description = 'Copies a subset of runtime dependencies to /libs in a given directory'
+
+    def libDir = "${targetDirPath()}/lib"
+    delete libDir
+
     def subset = providers.gradleProperty("subset") ?: null
 
     if(subset.present) {
@@ -90,7 +98,6 @@ tasks.register('copyRuntimeExternalDependencies', Copy) {
         from configurations.runtimeClasspath
     }
 
-    def libDir = "${targetDirPath()}/lib"
     into libDir
 
     doFirst {
@@ -101,14 +108,27 @@ tasks.register('copyRuntimeExternalDependencies', Copy) {
 tasks.register("copyConfigurationFiles", Copy) {
     description = "Copies the configuration files to a given directory and patches them"
 
+    def configDir = "${targetDirPath()}/config"
+    delete configDir
+
     from(sourceSets.main.resources.sourceDirectories)
     {
         include "*.properties"
         filter(ReplaceTokens, tokens: [
-                "version":  providers.gradleProperty("version").orNull
+                "version":  project.version.toString(),
+                "buildTimestamp": Instant.now().toString(),
+                "serverPort": providers.gradleProperty("serverPort").getOrElse("8080")
         ])
     }
 
-    def configDir = "${targetDirPath()}/config"
     into configDir
+}
+
+tasks.register("fullDeployment") {
+    description = "Full deployment task that cleans a given directory, copies the artifact, runtime dependencies and configuration files"
+
+    dependsOn 'cleanDeploymentDir'
+    dependsOn 'copyArtifactToDir'
+    dependsOn 'copyRuntimeExternalDependencies'
+    dependsOn 'copyConfigurationFiles'
 }
