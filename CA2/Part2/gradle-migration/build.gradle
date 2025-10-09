@@ -9,14 +9,30 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.5'
     id 'io.spring.dependency-management' version "1.1.5"
+    id 'application'
 }
 
 group = 'org.springframework.guides'
 version = '0.0.1-SNAPSHOT'
 
+def junitVersion = '5.8.1'
+
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+}
+
+sourceSets {
+    intTest {
+        java.srcDir file("src/intTest/java")
+        runtimeClasspath = main.output + test.output
+        compileClasspath = main.output + test.output
+    }
+}
+
+configurations {
+    intTestImplementation.extendsFrom testImplementation
+    intTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 dependencies {
@@ -25,7 +41,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    intTestImplementation 'org.springframework.boot:spring-boot-starter-test'
+    intTestImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    intTestRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
 
     runtimeOnly 'com.h2database:h2'
 }
@@ -41,7 +62,6 @@ springBoot {
     mainClass = 'payroll.PayrollApplication'
 }
 
-
 def targetDirPath = providers.gradleProperty("dirPath") ?: null
 
 tasks.register('cleanDeploymentDir', Delete) {
@@ -50,7 +70,7 @@ tasks.register('cleanDeploymentDir', Delete) {
 
     def deploymentDirPath = targetDirPath
 
-    if(deploymentDirPath == null) {
+    if (deploymentDirPath == null) {
         throw new GradleException("The deployment directory path is not populated") //TODO: validate exception
     }
 
@@ -77,8 +97,8 @@ tasks.register('copyRuntimeExternalDependencies', Copy) {
 
     def subset = providers.gradleProperty("subset") ?: null
 
-    if(subset.present) {
-        from configurations.runtimeClasspath.filter { it.name.endsWith(subset.get())}
+    if (subset.present) {
+        from configurations.runtimeClasspath.filter { it.name.endsWith(subset.get()) }
     } else {
         println "Subset is null, all of the lib files will be copied"
         from configurations.runtimeClasspath
@@ -90,4 +110,58 @@ tasks.register('copyRuntimeExternalDependencies', Copy) {
     doFirst {
         logger.lifecycle("Copying runtime dependencies to: $libDir")
     }
+}
+
+tasks.register('runArtifactJar', JavaExec) {
+    dependsOn 'installDist'
+    dependsOn 'copyRuntimeExternalDependencies'
+
+    if (System.properties['os.name'].toLowerCase().contains('windows')) {
+        println "it's Windows"
+    } else {
+        println System.properties['os.name'].toLowerCase()
+    }
+
+    def jarDir = "${targetDirPath.get()}/${project.name}-${project.version}.jar"
+
+    classpath = files(jarDir)
+
+    doFirst {
+        logger.lifecycle("Running the application artifact: $jarDir")
+    }
+}
+
+tasks.register('runArtifact', Exec) {
+    dependsOn 'installDist'
+
+    def scriptDir = layout.buildDirectory.file("scripts")
+
+    if (System.properties['os.name'].toLowerCase().contains('windows')) {
+        commandLine 'build/scripts/' + project.name + '.bat'
+    } else {
+        commandLine "build/install/tut-rest/bin/tut-rest"
+    }
+
+    doFirst {
+        logger.lifecycle("Running the application artifact: $scriptDir")
+    }
+}
+
+tasks.register('compressJavadoc', Zip) {
+    dependsOn javadoc
+
+    from 'build/docs/javadoc'
+    archiveFileName = 'JavadocBackup.zip'
+
+    destinationDirectory = file('build/zips')
+}
+
+tasks.register('intTest', Test) {
+    useJUnitPlatform()
+
+    description = 'Runs the integration tests.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.intTest.output.classesDirs
+    classpath = sourceSets.intTest.runtimeClasspath
 }
