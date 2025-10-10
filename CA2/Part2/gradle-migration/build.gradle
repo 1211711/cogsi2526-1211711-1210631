@@ -84,6 +84,7 @@ tasks.register('cleanDeploymentDir', Delete) {
 }
 
 tasks.register('copyArtifactToDir', Copy) {
+    mustRunAfter 'cleanDeploymentDir'
     description = 'Generates a jar and copies it to a given directory'
     dependsOn 'bootJar'
 
@@ -100,6 +101,7 @@ tasks.register('copyArtifactToDir', Copy) {
 }
 
 tasks.register('copyRuntimeExternalDependencies', Copy) {
+    mustRunAfter 'cleanDeploymentDir'
     description = 'Copies a subset of runtime dependencies to /libs in a given directory'
 
     def libDir = "${targetDirPath()}/lib"
@@ -124,6 +126,7 @@ tasks.register('copyRuntimeExternalDependencies', Copy) {
 }
 
 tasks.register("copyConfigurationFiles", Copy) {
+    mustRunAfter 'cleanDeploymentDir'
     description = "Copies the configuration files to a given directory and patches them"
 
     def configDir = "${targetDirPath()}/config"
