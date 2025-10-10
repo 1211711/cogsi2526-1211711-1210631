@@ -17,8 +17,6 @@ plugins {
 group = 'org.springframework.guides'
 version = '0.0.1-SNAPSHOT'
 
-def junitVersion = '5.8.1'
-
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
@@ -26,15 +24,26 @@ repositories {
 
 sourceSets {
     intTest {
-        java.srcDir file("src/intTest/java")
-        runtimeClasspath = main.output + test.output
-        compileClasspath = main.output + test.output
+        java {
+            srcDir file("src/intTest/java")
+            compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+            runtimeClasspath += output + compileClasspath
+        }
+        resources.srcDir file("src/intTest/resources")
     }
 }
 
 configurations {
-    intTestImplementation.extendsFrom testImplementation
-    intTestRuntimeOnly.extendsFrom testRuntimeOnly
+    intTestImplementation {
+        canBeConsumed = false
+        canBeResolved = true
+        extendsFrom implementation, testImplementation
+    }
+    intTestRuntimeOnly {
+        canBeConsumed = false
+        canBeResolved = true
+        extendsFrom runtimeOnly, testRuntimeOnly
+    }
 }
 
 dependencies {
@@ -46,8 +55,8 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-api"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 
     runtimeOnly 'com.h2database:h2'
 }
@@ -65,13 +74,11 @@ springBoot {
 
 
 def targetDirPath = {
-    def path = providers.gradleProperty("dirPath")
-
-    if(!path.present) {
-        throw new GradleException("The deployment directory path variable is not populated")
+    if (project.hasProperty("dirPath") && project.property("dirPath")) {
+        return project.property("dirPath")
+    } else {
+        return "build/deployment/default"
     }
-
-    return path.get()
 }
 
 tasks.register('cleanDeploymentDir', Delete) {
@@ -207,11 +214,13 @@ tasks.register('compressJavadoc', Zip) {
 }
 
 tasks.register('intTest', Test) {
-    useJUnitPlatform()
-
     description = 'Runs the integration tests.'
     group = 'verification'
 
+    useJUnitPlatform()
+
     testClassesDirs = sourceSets.intTest.output.classesDirs
     classpath = sourceSets.intTest.runtimeClasspath
+
+    shouldRunAfter test
 }
