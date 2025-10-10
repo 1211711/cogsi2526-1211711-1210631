@@ -5,7 +5,7 @@ course on _ISEP_ (Instituto Superior de Engenharia do Porto).
 
 This assignment was splited into two parts. This documents is only for Part Ii.
 
-## Part I
+## Part II
 
 This part focused on working migrating a _maven_ project to **_gradle_** and keeping the good practices learned and used in the previous
 assignments.
@@ -51,7 +51,7 @@ The steps used to implement this assignment were:
     1. Replace the src folder created by gradle with _links_ from the _tut-rest_ project
     2. Add project dependencies to [build.gradle](./gradle_basic_demo-main/build.gradle):
         1. Configure the tools that gradle will use and apply in the project
-            ```
+            ```gradle
             plugins {
                 id 'java'
                 id 'application'
@@ -96,14 +96,14 @@ The steps used to implement this assignment were:
            1. There wasn't a need to specify the versions of the dependencies because the
               `io.spring.dependency-management` plugin takes care of that, ensuring compatibility with Spring Boot 3.2.5
         3. Add project properties
-            ```
+            ```gradle
               group = 'org.springframework.guides'
               version = '0.0.1-SNAPSHOT'
            ```
 
 5. Create deployment task
    1. Create `cleanDeploymentDir` task in order to clean the deployment directory before copying new files
-        ```
+        ```gradle
            tasks.register('cleanDeploymentDir', Delete) {
                description = 'Cleans a specific version-controlled directory using -PdirPath'
             
@@ -129,9 +129,9 @@ The steps used to implement this assignment were:
            This function checks for a project property named `dirPath` passed via the command line using `-PdirPath=test/path`.
            If the property is not provided, it defaults to `build/deployment/dev`. This was created to allow flexibility in
            specifying different target directories without changing the build script
-       2. Use the `delete` method to remove all contents of the specified directory
+       3. Use the `delete` method to remove all contents of the specified directory
    2. Create `copySource` task in order to copy the source files to a specific directory
-        ```
+        ```gradle
             tasks.register('copyArtifactToDir', Copy) {
                 mustRunAfter 'cleanDeploymentDir'
                 description = 'Generates a jar and copies it to a given directory'
@@ -157,7 +157,7 @@ The steps used to implement this assignment were:
          5. `mustRunAfter 'cleanDeploymentDir'` is used in order to ensure that this task runs after the `cleanDeploymentDir` task
          6. `dependsOn 'bootJar'` is used to ensure that the `bootJar` task runs before this task, guaranteeing that the JAR file is created before attempting to copy it
    3. Create `copyRuntimeExternalDependencies` task in order to copy the runtime dependencies to a specific directory
-        ```
+        ```gradle
             tasks.register('copyRuntimeExternalDependencies', Copy) {
                 mustRunAfter 'copyArtifactToDir'
                 description = 'Copies a subset of runtime dependencies to /libs in a given directory'
@@ -194,7 +194,7 @@ The steps used to implement this assignment were:
       5. The `into` keyword specifies the destination directory where the dependencies will be copied
       6. `mustRunAfter 'copyArtifactToDir'` is used in order to ensure that this task runs after the `copyArtifactToDir` task
    4. Create `copyConfigurationFiles` task in order to copy and patch configuration files to a specific directory
-        ```
+        ```gradle
             tasks.register("copyConfigurationFiles", Copy) {
                 mustRunAfter 'copyRuntimeExternalDependencies'
                 description = "Copies the configuration files to a given directory and patches them"
@@ -230,7 +230,7 @@ The steps used to implement this assignment were:
         5. `mustRunAfter 'copyRuntimeExternalDependencies'` is used in order to ensure that this task runs after the
            `copyRuntimeExternalDependencies` task
    5. Create `deployToDev` task in order to run all the previous tasks in order
-        ```
+        ```gradle
             tasks.register("deployToDev") {
                 description = "Full deployment task that cleans a given directory, copies the artifact, runtime dependencies and configuration files"
             
@@ -260,31 +260,257 @@ The steps used to implement this assignment were:
            `build/deployment/dev` directory, copying only the runtime dependencies that include `.jar` in their names
         2. `./gradlew deployToDev` - This will deploy the application to the default `build/deployment/dev` directory, copying all runtime dependencies
 
+6. Create a task to run the application
+    1. Add the plugin `aplication`
+        1. This allows running the installed distribution of the application using the script generated by the `id application` plugin.
+    2. Create `runArtifactScript` task to run the distribution script
+         ```gradle
+         tasks.register('runArtifactScript', Exec) {
+             dependsOn 'installDist'
+ 
+             if (System.properties['os.name'].toLowerCase().contains('windows')) {
+                 commandLine "build/install/${project.name}/bin/${project.name}.bat"
+             } else {
+                 commandLine "build/install/${project.name}/bin/${project.name}"
+             }
+         }
+         ```
+        1. It uses the `Exec` task type, which can execute operating system commands
+        2. The `dependsOn 'installDist' ensures that the distribution package is created before execution
+        3. The script file path is platform-aware, it runs `.bat` files on Windows and regular shell scripts on remaining systems
+        4. To execute the application distribution, use `./gradlew runArtifactScript`
+        5. This task is not runnable since the project runs on Spring Boot which cannot be loaded via distribution scripts. Because of that we added another task that runs via the fat jar file
+    3. Create `runArtifactJar` task to run the generated JAR file
+         ```gradle
+         tasks.register('runArtifactJar', JavaExec) {
+             dependsOn 'bootJar'
+ 
+             def jarDir = "build/libs/${project.name}-${project.version}.jar"
+ 
+             classpath = files(jarDir)
+ 
+             doFirst {
+                 logger.lifecycle("Running the application artifact: $jarDir")
+             }
+         }
+         ```
+        1. This task allows running the Spring Boot application directly from the generated JAR file
+        2. It is of type `JavaExec`, which is a built-in Gradle task for running Java programs
+        3. The `dependsOn 'bootJar'` ensures that the JAR is built before the task executes
+        4. The `classpath` points to the generated JAR in the `build/libs` directory
+        5. To run the application, execute `./gradlew runArtifactJar`
 
+7. Create a task to compress Javadoc
+    1. Create `compressJavadoc` task to package documentation
+       ```gradle
+       tasks.register('compressJavadoc', Zip) {
+             dependsOn javadoc
+ 
+             from 'build/docs/javadoc'
+             archiveFileName = 'JavadocBackup.zip'
+ 
+             destinationDirectory = file('build/zips')
+       }
+         ```
+        1. This task compresses the generated Java documentation into a single `.zip` file
+        2. It uses the `Zip` task type, a built-in Gradle task for creating ZIP archives
+        3. It depends on the `javadoc` task, ensuring that documentation is generated before compression
+        4. The compressed file `JavadocBackup.zip` is stored in the `build/zips` directory
+        5. To generate and compress documentation, execute `./gradlew compressJavadoc`
 
-8. Update documentation
+8. Create a task to run integration tests
+    1. Define custom source set, to properly separate integration tests from regular unit tests
+         ```gradle
+         sourceSets {
+             intTest {
+                 java {
+                     srcDir file("src/intTest/java")
+                     compileClasspath += sourceSets.main.output + configurations.testRuntimeClasspath
+                     runtimeClasspath += output + compileClasspath
+                 }
+                 resources.srcDir file("src/intTest/resources")
+             }
+         }
+        ```
+        1. This defines a separate source set for integration tests with its own Java and resource directories, while including the main application and test dependencies for compilation and runtime
+    2. Configure dependencies for integration tests
+         ```gradle
+         configurations {
+             intTestImplementation {
+                 canBeConsumed = false
+                 canBeResolved = true
+                 extendsFrom implementation, testImplementation
+             }
+             intTestRuntimeOnly {
+                 canBeConsumed = false
+                 canBeResolved = true
+                 extendsFrom runtimeOnly, testRuntimeOnly
+             }
+         }
+         ```
+        1. These configurations provide compile-time and runtime dependencies for the integration tests, inheriting from the main and test configurations
+    3. Add Integration tests in file [PayrollTest.java](gradle-migration/src/intTest/java/payroll/PayrollTest.java)
+    4. Create `intTest` task for integration testing
+         ```gradle
+         tasks.register('intTest', Test) {
+             description = 'Runs the integration tests.'
+             group = 'verification'
+ 
+             useJUnitPlatform()
+ 
+             testClassesDirs = sourceSets.intTest.output.classesDirs
+             classpath = sourceSets.intTest.runtimeClasspath
+ 
+             shouldRunAfter test
+         }
+         ```
+        1. This task runs the integration tests located in `src/intTest/java`.
+        2. It uses the `Test` task type, configured to work with the intTest source set.
+        3. The `useJUnitPlatform()` method enables JUnit 5 for running the tests.
+        4. The `testClassesDirs and classpath` properties are configured to point to the integration test classes and runtime dependencies.
+        5. The `shouldRunAfter test` ensures that integration tests **should** run after the regular unit tests.
+        6. To execute the integration tests, execute `./gradlew intTest`
+
+9. Update documentation
     1. The [README.md](./README.md) was update, using the same pull request strategy as previously
 
-9. Tag assignment
-    1. ```git tag -a ca2-part1``` was used to tag the assignment
+10. Tag assignment
+     1. ```git tag -a ca2-part1``` was used to tag the assignment
 
 -------
-**Q1:** Explain how the _**Gradle Wrapper**_ and the _**JDK Toolchain**_ ensure the correct versions of _Gradle_ and the
-_Java Development Kit_ are used without requiring manual installation.
+## Alternative Solutions
+An easy and quick alternative to gradle would be maven, which is the build tool used in the original project.
+However, this assignment was focused on learning, and since _maven_ was already how the project was built, it made more 
+sense to use another alternative like _Ant_.
 
-**R:**
-The Gradle Wrapper automatically downloads and runs the exact Gradle version specified by the project, eliminating the
-need for developers to manually install or configure Gradle. The JDK Toolchain, configured in build.gradle, specifies
-the required Java version for compilation and execution, and Gradle automatically selects a compatible JDK on the system
-or downloads one if necessary.
---------
-**Q2:** In the root directory of the application, run `./gradlew –q javaToolchain` and explain the output
+Ant is a more manual and less opinionated build tool compared to Gradle, which provides more flexibility but requires more 
+configuration. Apache Ant is a XML-based build automation tool that, unlike Maven and Gradle, doesn’t enforce a project structure. 
+In Ant everything must be explicitly defined in a build.xml file. It's _procedural_ rather than declarative, meaning you 
+control every step, manually.
 
-**R:**
-Running the above command gradle fails because the option is placed badly. But if you fix the command to
-`./gradlew javaToolchain -q` it will output the information about the Java toolchains that Gradle will use for this
-project. More specifically prints the vendor, version and installation path of the JDK used by gradle.
-![javaToolChain Command](./img/javaToolChain.png)
+In order to init an Ant project, we need to create a `build.xml` file and define targets for compiling java, copy resources, 
+package, run and deploy the application.
+
+Ant doesn't have built-in dependency management like Maven or Gradle, so we would need to manually download and manage any 
+external libraries or use Apache Ivy.
+
+A quick setup with compiling and packaging of the project would look like this:
+```xml
+<project name="tut-rest" default="build" basedir=".">
+    <property name="src.dir"     value="src/main/java"/>
+    <property name="build.dir"   value="build/classes"/>
+    <property name="dist.dir"    value="build/dist"/>
+    <property name="main.class"  value="payroll.PayrollApplication"/>
+    <property name="jar.name"    value="tut-rest-0.0.1-SNAPSHOT.jar"/>
+
+    <target name="clean">
+        <delete dir="${build.dir}" />
+        <delete dir="${dist.dir}" />
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${build.dir}" />
+        <javac srcdir="${src.dir}" destdir="${build.dir}" includeantruntime="false" source="17" target="17" />
+    </target>
+
+    <target name="jar" depends="compile">
+        <mkdir dir="${dist.dir}" />
+        <jar destfile="${dist.dir}/${jar.name}" basedir="${build.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${main.class}" />
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="build" depends="clean,jar"/>
+</project>
+```
+
+Using Apache Ivy for dependency management, we would need to create an `ivy.xml` file to define the dependencies:
+```xml
+<ivy-module version="2.0">
+  <info organisation="org.springframework.guides" module="tut-rest"/>
+  
+  <dependencies>
+    <dependency org="org.springframework.boot" name="spring-boot-starter-web" rev="3.2.5"/>
+    <dependency org="org.springframework.boot" name="spring-boot-starter-data-jpa" rev="3.2.5"/>
+    <dependency org="org.springframework.boot" name="spring-boot-starter-hateoas" rev="3.2.5"/>
+    <dependency org="org.springframework.boot" name="spring-boot-starter-webflux" rev="3.2.5"/>
+      
+    <dependency org="org.springframework.boot" name="spring-boot-starter-test" rev="3.2.5" conf="test->default"/>
+      
+    <dependency org="com.h2database" name="h2" rev="2.2.224"/>
+  </dependencies>
+</ivy-module>
+```
+
+This would need to also be referenced in the ´build.xml´ file, with tasks definition:
+```xml
+    <taskdef name="ivy" classname="org.apache.ivy.ant.IvyConfigure">
+        <classpath>
+            <fileset dir="lib">
+                <include name="ivy-*.jar"/>
+            </fileset>
+        </classpath>
+    </taskdef>
+
+    <target name="ivy-init">
+        <ivy/>
+    </target>
+
+    <target name="resolve-dependencies" depends="ivy-init">
+        <taskdef name="ivyresolve" classname="org.apache.ivy.ant.IvyResolve"/>
+        <ivyresolve/>
+        
+        <taskdef name="ivycachepath" classname="org.apache.ivy.ant.IvyCachePath"/>
+        <ivycachepath pathid="project.classpath"/>
+    </target>
+```
+
+1. The `taskdef` element defines a new task named `ivy` that uses the `IvyConfigure` class from the Ivy library
+2. The `resolve-dependencies` target depends on the `ivy-init` target to ensure that Ivy is initialized before resolving dependencies
+3. The `ivyresolve` task resolves the dependencies defined in the `ivy.xml` file
+4. The `ivycachepath` task creates a classpath reference named `project.classpath` that includes all resolved dependencies
+
+In order to replicate the first set of tasks created in gradle, we would need to create more targets in the `build.xml` file.
+
+```xml
+<target name="clean-deployment-dir">
+    <delete dir="build/deployment/dev" />
+</target>
+
+<target name="copy-artifact-to-dir" depends="jar">
+    <mkdir dir="build/deployment/dev" />
+    <copy file="${dist.dir}/${jar.name}" todir="build/deployment/dev" />
+</target>
+
+<target name="copy-runtime-external-dependencies">
+    <mkdir dir="build/deployment/dev/lib" />
+    <copy todir="build/deployment/dev/lib">
+        <fileset dir="lib" includes="**/*.jar" />
+    </copy>
+</target>
+
+<target name="copy-configuration-files">
+    <mkdir dir="build/deployment/dev/config" />
+    <copy todir="build/deployment/dev/config">
+        <fileset dir="src/main/resources">
+            <include name="*.properties" />
+        </fileset>
+        <filterset>
+            <filter token="version" value="0.0.1-SNAPSHOT" />
+            <filter token="buildTimestamp" value="${DSTAMP} ${TSTAMP}" />
+        </filterset>
+    </copy>
+</target>
+
+<target name="deployToDev" depends="clean-deployment,copy-jar,copy-libs,copy-config">
+    <echo message="Deployment completed successfully."/>
+</target>
+```
+
+A target is a set of tasks to be executed. Targets can depend on other targets, allowing us to create a sequence of operations, 
+similar to the `dependsOn` and `mustRunAfter` clauses in gradle. Unlike gradle, in Ant the order of the target dependencies is the order of execution.
 
 --------
 
