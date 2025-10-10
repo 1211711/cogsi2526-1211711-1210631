@@ -81,6 +81,10 @@ tasks.register('cleanDeploymentDir', Delete) {
 
     println "Cleaning contents of: $deploymentDirPath"
     delete deploymentDirPath
+
+    doFirst {
+        println "Starting to clean the deployment directory: $deploymentDirPath"
+    }
 }
 
 tasks.register('copyArtifactToDir', Copy) {
@@ -142,6 +146,10 @@ tasks.register("copyConfigurationFiles", Copy) {
     }
 
     into configDir
+
+    doFirst {
+        println "Copying configuration files to: $configDir"
+    }
 }
 
 tasks.register("fullDeployment") {
@@ -151,6 +159,14 @@ tasks.register("fullDeployment") {
     dependsOn 'copyArtifactToDir'
     dependsOn 'copyRuntimeExternalDependencies'
     dependsOn 'copyConfigurationFiles'
+
+    doFirst {
+        println "Starting full deployment..."
+    }
+
+    doLast {
+        println "Full deployment completed."
+    }
 }
 
 tasks.register('runArtifactJar', JavaExec) {
