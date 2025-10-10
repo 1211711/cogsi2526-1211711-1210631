@@ -73,13 +73,11 @@ springBoot {
 }
 
 
-def targetDirPath = {
-    if (project.hasProperty("dirPath") && project.property("dirPath")) {
-        return project.property("dirPath")
-    } else {
-        return "build/deployment/default"
-    }
-}
+            def targetDirPath = {
+                def path = providers.gradleProperty("dirPath").orElse("build/deployment/dev")
+
+                return path.get()
+            }
 
 tasks.register('cleanDeploymentDir', Delete) {
     description = 'Cleans a specific version-controlled directory using -PdirPath'
@@ -100,7 +98,6 @@ tasks.register('copyArtifactToDir', Copy) {
     dependsOn 'bootJar'
 
     def deploymentDir = targetDirPath()
-    delete deploymentDir
 
     from layout.buildDirectory.file("libs/${project.name}-${project.version}.jar")
 
@@ -112,11 +109,10 @@ tasks.register('copyArtifactToDir', Copy) {
 }
 
 tasks.register('copyRuntimeExternalDependencies', Copy) {
-    mustRunAfter 'cleanDeploymentDir'
+    mustRunAfter 'copyArtifactToDir'
     description = 'Copies a subset of runtime dependencies to /libs in a given directory'
 
     def libDir = "${targetDirPath()}/lib"
-    delete libDir
 
     def subset = providers.gradleProperty("subset") ?: null
 
@@ -137,11 +133,10 @@ tasks.register('copyRuntimeExternalDependencies', Copy) {
 }
 
 tasks.register("copyConfigurationFiles", Copy) {
-    mustRunAfter 'cleanDeploymentDir'
+    mustRunAfter 'copyRuntimeExternalDependencies'
     description = "Copies the configuration files to a given directory and patches them"
 
     def configDir = "${targetDirPath()}/config"
-    delete configDir
 
     from(sourceSets.main.resources.sourceDirectories)
     {
@@ -159,7 +154,7 @@ tasks.register("copyConfigurationFiles", Copy) {
     }
 }
 
-tasks.register("fullDeployment") {
+tasks.register("deployToDev") {
     description = "Full deployment task that cleans a given directory, copies the artifact, runtime dependencies and configuration files"
 
     dependsOn 'cleanDeploymentDir'
