@@ -44,9 +44,8 @@ The steps used to implement this assignment were:
         1. Open the file [gradle/wrapper/gradle-wrapper.properties](./gradle_basic_demo-main/gradle/wrapper/gradle-wrapper.properties)
         2. Change the distributionUrl to:
            `https\://services.gradle.org/distributions/gradle-8.7-bin.zip`
-        3. Save the file
-        4. This was done because the latest version of gradle (9,1) at the time of writing this document has some
-           compatibility issues with some dependencies used in the project
+        3. This was done because the latest version of gradle (9,1) at the time of writing this document has some
+            compatibility issues with some dependencies used in the project
    
 4. Migrate project to gradle
     1. Replace the src folder created by gradle with _links_ from the _tut-rest_ project
@@ -118,17 +117,18 @@ The steps used to implement this assignment were:
                }
            }
         ```
-       1. In the task first the path of the directory to be cleaned is retrieved by calling the `targetDirPath` function
-            ```
-            def targetDirPath = {
-                def path = providers.gradleProperty("dirPath").orElse("build/deployment/dev")
+       1. The task is of type `Delete`, which is a built-in Gradle task used to delete files and directories
+       2. The path of the directory to be cleaned is retrieved by calling the `targetDirPath` function
+             ```
+             def targetDirPath = {
+                 def path = providers.gradleProperty("dirPath").orElse("build/deployment/dev")
             
-                return path.get()
-            }
-          ```
-          This function checks for a project property named `dirPath` passed via the command line using `-PdirPath=your/path`.
-          If the property is not provided, it defaults to `build/deployment/dev`. This was created to allow flexibility in
-          specifying different target directories without changing the build script.
+                 return path.get()
+             }
+           ```
+           This function checks for a project property named `dirPath` passed via the command line using `-PdirPath=test/path`.
+           If the property is not provided, it defaults to `build/deployment/dev`. This was created to allow flexibility in
+           specifying different target directories without changing the build script
        2. Use the `delete` method to remove all contents of the specified directory
    2. Create `copySource` task in order to copy the source files to a specific directory
         ```
@@ -184,7 +184,7 @@ The steps used to implement this assignment were:
       ```
       1. The task is of type `Copy`, which is a built-in Gradle task used to copy files and directories
       2. `targetDirPath` function is used again to get the target directory path and append `/lib` to it
-      3. The `subset` variable retrieves a project property named `subset` passed via the command line using `-Psubset=yourSubset`.
+      3. The `subset` variable retrieves a project property named `subset` passed via the command line using `-Psubset=testSubset`.
          If the property is not provided, it defaults to `null`. This allows filtering the dependencies to be copied based on the provided subset
          1. If `subset` is provided, the `from` block includes only the dependencies that match the subset pattern using the `include` method 
             with a wildcard pattern
