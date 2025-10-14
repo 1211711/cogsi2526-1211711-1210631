@@ -72,12 +72,11 @@ springBoot {
     mainClass = 'payroll.PayrollApplication'
 }
 
+def targetDirPath = {
+    def path = providers.gradleProperty("dirPath").orElse("build/deployment/dev")
 
-            def targetDirPath = {
-                def path = providers.gradleProperty("dirPath").orElse("build/deployment/dev")
-
-                return path.get()
-            }
+    return path.get()
+}
 
 tasks.register('cleanDeploymentDir', Delete) {
     description = 'Cleans a specific version-controlled directory using -PdirPath'
