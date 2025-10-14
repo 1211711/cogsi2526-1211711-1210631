@@ -375,7 +375,7 @@ The steps used to implement this assignment were:
     1. The [README.md](./README.md) was update, using the same pull request strategy as previously
 
 10. Tag assignment
-     1. ```git tag -a ca2-part1``` was used to tag the assignment
+     1. ```git tag -a ca2-part2``` was used to tag the assignment
 
 -------
 ## Alternative Solutions
@@ -511,6 +511,75 @@ In order to replicate the first set of tasks created in gradle, we would need to
 
 A target is a set of tasks to be executed. Targets can depend on other targets, allowing us to create a sequence of operations, 
 similar to the `dependsOn` and `mustRunAfter` clauses in gradle. Unlike gradle, in Ant the order of the target dependencies is the order of execution.
+
+Regarding the java/javadoc/testing tasks, they would look like this on Ant:
+
+```xml
+<target name="run-artifact-jar" depends="resolve-dependencies,compile">
+    <java fork="true" classname="${main.class}"/>
+</target>
+```
+
+1. The target depends on the `resolve-dependencies` and `compile` targets to ensure that dependencies are resolved and the project is compiled before running
+2. The `java` task is used to run a Java application, with the `fork="true"` attribute indicating that the application should be run in a separate process
+3. The `classpath` element defines the classpath for the Java application, including both the resolved dependencies and the compiled classes
+
+```xml
+<target name="run-artifact-script" depends="install-dist">
+    <condition property="is.windows" value="true" else="false">
+        <os family="windows"/>
+    </condition>
+    
+    <exec executable="${basedir}/build/install/${ant.project.name}/bin/${ant.project.name}${is.windows == 'true' ? '.bat' : ''}" failonerror="true"/>
+</target>
+```
+
+1. The target depends on the `install-dist` target to ensure that the distribution package is created before execution
+2. The `condition` element sets a property `is.windows` to `true` if the operating system is Windows, and `false` otherwise
+3. The `exec` task is used to execute an external command, with the `executable` attribute specifying the path to the script (.bat if windows)
+
+```xml
+<target name="javadoc" depends="resolve-dependencies">
+    <javadoc sourcepath="${src.dir}" destdir="build/docs/javadoc" />
+</target>
+
+<target name="compress-javadoc" depends="javadoc">
+    <mkdir dir="build/zips" />
+    <zip destfile="build/zips/JavadocBackup.zip" basedir="build/docs/javadoc" />
+</target>
+```
+
+1. The `javadoc` target generates Java documentation using the `javadoc` task, specifying the source path and destination directory
+2. The `compress-javadoc` target depends on the `javadoc` target to ensure that documentation is generated before compression
+3. The `compress-javadoc` target uses the `zip` task to create a ZIP archive of the generated documentation
+
+```xml
+<property name="inttest.dir" value="src/intTest/java"/>
+
+<target name="int-test" depends="compile">
+    <junit printsummary="on" haltonfailure="false" fork="true">
+        <classpath>
+            <pathelement path="${build.dir}"/>
+        </classpath>
+        <batchtest>
+            <fileset dir="${inttest.dir}">
+                <include name="**/*Test.java"/>
+            </fileset>
+        </batchtest>
+    </junit>
+</target>
+```
+
+1. The `int-test` target runs integration tests using the `junit` task, which is part of Ant
+2. The target depends on the `compile` target to ensure that the project is compiled before running the tests
+    1. The `printsummary="on"` attribute enables a summary of the test results to be printed after execution
+    2. The `haltonfailure="false"` attribute causes the build to continue even if any test fails
+    3. The `fork="true"` attribute indicates that the tests should be run in a separate process
+3. The `classpath` element defines the classpath for the JUnit tests
+4. The `batchtest` element specifies a set of test classes to run, using a `fileset` to include all Java files in the 
+`src/intTest/java` directory that match the pattern `**/*Test.java`
+
+In order to execute any of the previous tasks/targets, we would need to run `ant <target-name>`.
 
 --------
 
