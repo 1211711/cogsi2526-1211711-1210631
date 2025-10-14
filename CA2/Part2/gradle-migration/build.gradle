@@ -22,14 +22,6 @@ repositories {
     mavenCentral()
 }
 
-jar {
-    enabled = true
-}
-
-bootJar {
-    enabled = false
-}
-
 sourceSets {
     intTest {
         java {
@@ -76,13 +68,12 @@ java {
     }
 }
 
-application {
+springBoot {
     mainClass = 'payroll.PayrollApplication'
 }
 
 def targetDirPath = {
     def path = providers.gradleProperty("dirPath").orElse("build/deployment/dev")
-
 
     return path.get()
 }
@@ -103,7 +94,7 @@ tasks.register('cleanDeploymentDir', Delete) {
 tasks.register('copyArtifactToDir', Copy) {
     mustRunAfter 'cleanDeploymentDir'
     description = 'Generates a jar and copies it to a given directory'
-    dependsOn 'jar'
+    dependsOn 'bootJar'
 
     def deploymentDir = targetDirPath()
 
@@ -180,7 +171,7 @@ tasks.register("deployToDev") {
 }
 
 tasks.register('runArtifactJar', JavaExec) {
-    dependsOn 'jar'
+    dependsOn 'bootJar'
 
     if (System.properties['os.name'].toLowerCase().contains('windows')) {
         println "it's Windows"
