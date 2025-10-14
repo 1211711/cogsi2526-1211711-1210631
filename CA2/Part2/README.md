@@ -446,25 +446,25 @@ Using Apache Ivy for dependency management, we would need to create an `ivy.xml`
 
 This would need to also be referenced in the ´build.xml´ file, with tasks definition:
 ```xml
-    <taskdef name="ivy" classname="org.apache.ivy.ant.IvyConfigure">
-        <classpath>
-            <fileset dir="lib">
-                <include name="ivy-*.jar"/>
-            </fileset>
-        </classpath>
-    </taskdef>
+<taskdef name="ivy" classname="org.apache.ivy.ant.IvyConfigure">
+    <classpath>
+        <fileset dir="lib">
+            <include name="ivy-*.jar"/>
+        </fileset>
+    </classpath>
+</taskdef>
 
-    <target name="ivy-init">
-        <ivy/>
-    </target>
+<target name="ivy-init">
+    <ivy/>
+</target>
 
-    <target name="resolve-dependencies" depends="ivy-init">
-        <taskdef name="ivyresolve" classname="org.apache.ivy.ant.IvyResolve"/>
-        <ivyresolve/>
-        
-        <taskdef name="ivycachepath" classname="org.apache.ivy.ant.IvyCachePath"/>
-        <ivycachepath pathid="project.classpath"/>
-    </target>
+<target name="resolve-dependencies" depends="ivy-init">
+    <taskdef name="ivyresolve" classname="org.apache.ivy.ant.IvyResolve"/>
+    <ivyresolve/>
+    
+    <taskdef name="ivycachepath" classname="org.apache.ivy.ant.IvyCachePath"/>
+    <ivycachepath pathid="project.classpath"/>
+</target>
 ```
 
 1. The `taskdef` element defines a new task named `ivy` that uses the `IvyConfigure` class from the Ivy library
