@@ -72,6 +72,10 @@ springBoot {
     mainClass = 'payroll.PayrollApplication'
 }
 
+application {
+    mainClass = 'payroll.PayrollApplication'
+}
+
 def targetDirPath = {
     def path = providers.gradleProperty("dirPath").orElse("build/deployment/dev")
 
