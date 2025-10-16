@@ -285,8 +285,9 @@ The steps used to implement this assignment were:
         2. The `dependsOn 'installDist' ensures that the distribution package is created before execution
         3. The script file path is platform-aware, it runs `.bat` files on Windows and regular shell scripts on remaining systems
         4. To execute the application distribution, use `./gradlew runArtifactScript`
-        5. This task is not runnable since the project runs on Spring Boot which cannot be loaded via distribution scripts. Because of that we added another task that runs via the fat jar file
+        5. After running the command we can access http://localhost:8080/employees to test the application.
     3. Create `runArtifactJar` task to run the generated JAR file
+        1. As an alternative of using the _runArtifactScript_, we created this task so we are also able to run the application using the JAR created on `bootJar`.
          ```gradle
          tasks.register('runArtifactJar', JavaExec) {
              dependsOn 'bootJar'
@@ -300,11 +301,11 @@ The steps used to implement this assignment were:
              }
          }
          ```
-        1. This task allows running the Spring Boot application directly from the generated JAR file
-        2. It is of type `JavaExec`, which is a built-in Gradle task for running Java programs
-        3. The `dependsOn 'bootJar'` ensures that the JAR is built before the task executes
-        4. The `classpath` points to the generated JAR in the `build/libs` directory
-        5. To run the application, execute `./gradlew runArtifactJar`
+        2. This task allows running the Spring Boot application directly from the generated JAR file
+        3. It is of type `JavaExec`, which is a built-in Gradle task for running Java programs
+        4. The `dependsOn 'bootJar'` ensures that the JAR is built before the task executes
+        5. The `classpath` points to the generated JAR in the `build/libs` directory
+        6. To run the application, execute `./gradlew runArtifactJar`
 
 7. Create a task to compress Javadoc
     1. Create `compressJavadoc` task to package documentation
@@ -597,4 +598,3 @@ In order to execute any of the previous tasks/targets, we would need to run `ant
 | João Brito | 1211711 |    100%    |
 
 [1]: https://docs.gradle.org/current/userguide/gradle_directories_intermediate.html "Gradle Build explanation"
-
