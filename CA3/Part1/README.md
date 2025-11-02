@@ -174,7 +174,8 @@ spring.datasource.url=jdbc:h2:file:./database
 ```
 
 This configuration allows H2 to save data in a physical file inside the shared folder, ensuring persistence even after
-restarting the VM.
+restarting the VM:
+![sharedFolder.png](img/sharedFolder.png)
 
 ---
 
