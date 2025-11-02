@@ -15,6 +15,7 @@ Vagrant.configure("2") do |config|
   config.vm.network "private_network", type: "dhcp"
 
   # Allow the IP to be assigned via DHCP
+  config.vm.network "forwarded_port", guest: 59001, host: 59001
   config.vm.network "forwarded_port", guest: 8080, host: 8090
 
   config.vm.synced_folder "./shared", "/vagrant"
@@ -29,7 +30,7 @@ Vagrant.configure("2") do |config|
     # Configure environment variables for provisioning
     export REPO_CLONE=${REPO_CLONE:-true}
     export START_SERVER=${START_SERVER:-false}
-    export START_TUT_REST=${START_TUT_REST:-true}
+    export START_TUT_REST=${START_TUT_REST:-false}
 
     # Clone project
     if [ "$REPO_CLONE" == "true" ]; then
