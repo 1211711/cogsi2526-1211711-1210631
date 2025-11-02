@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
     # Clone project
     cd /home/vagrant/
     git clone https://github.com/1211711/cogsi2526-1211711-1210631.git
-    cd cogsi2526-11211711-11210631
+    cd cogsi2526-1211711-1210631
     git checkout feature/issue-19/setup_multiple_virtual_machines
 
     echo "Global provisioning complete!"
@@ -21,8 +21,15 @@ Vagrant.configure("2") do |config|
   config.vm.define "db" do |db|
     db.vm.hostname = "db-server"
 
+    # Setup a static id to allow VM web to connect
+    db.vm.network "private_network", ip: "192.168.33.11"
+
     config.vm.provision "shell", inline: <<-SHELL
       sudo apt-get install -y openjdk-17-jdk
+
+      cd /home/vagrant/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration
+      ./gradlew startH2Server
+      echo "Starting H2 Server..."
 
       echo "DB provisioning complete!"
     SHELL
@@ -33,6 +40,11 @@ Vagrant.configure("2") do |config|
 
     config.vm.provision "shell", inline: <<-SHELL
       sudo apt-get install -y openjdk-17-jdk
+
+      while ! nc -z 192.168.33.11 8089; do
+        echo "H2 db is not available, waiting 3 seconds"
+        sleep 3
+      done
 
       echo "Web provisioning complete!"
     SHELL

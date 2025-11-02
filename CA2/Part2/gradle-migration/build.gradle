@@ -222,3 +222,12 @@ tasks.register('intTest', Test) {
 
     shouldRunAfter test
 }
+
+tasks.register('startH2Server', JavaExec) {
+    description = 'Starts the H2 database'
+    group = "build"
+
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'org.h2.tools.Server'
+    args = ['-tcp', '-tcpAllowOthers', '-tcpPort', '8089', '-baseDir', '/shared']
+}
