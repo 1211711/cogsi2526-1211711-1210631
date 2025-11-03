@@ -229,5 +229,5 @@ tasks.register('startH2Server', JavaExec) {
 
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'org.h2.tools.Server'
-    args = ['-tcp', '-tcpAllowOthers', '-tcpPort', '8089', '-baseDir', '/shared']
+    args = ['-tcp', '-tcpAllowOthers', '-tcpPort', '8089', '-baseDir', '/home/vagrant/shared']
 }

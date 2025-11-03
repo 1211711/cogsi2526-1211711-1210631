@@ -4,6 +4,10 @@
 Vagrant.configure("2") do |config|
   config.vm.box = "bento/ubuntu-22.04"
 
+  config.ssh.username = "vagrant"
+  config.ssh.password = "vagrant"
+
+
   # Global update for all VMs
   config.vm.provision "shell", inline: <<-SHELL
     sudo apt-get update
@@ -14,6 +18,7 @@ Vagrant.configure("2") do |config|
     git clone https://github.com/1211711/cogsi2526-1211711-1210631.git
     cd cogsi2526-1211711-1210631
     git checkout feature/issue-19/setup_multiple_virtual_machines
+    git pull
 
     echo "Global provisioning complete!"
   SHELL
@@ -23,13 +28,14 @@ Vagrant.configure("2") do |config|
 
     # Setup a static id to allow VM web to connect
     db.vm.network "private_network", ip: "192.168.33.11"
+    db.vm.network "forwarded_port", guest: 8089, host: 8089
 
-    config.vm.provision "shell", inline: <<-SHELL
+    db.vm.provision "shell", inline: <<-SHELL
       sudo apt-get install -y openjdk-17-jdk
 
+      echo "Starting H2 Server..."
       cd /home/vagrant/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration
       ./gradlew startH2Server
-      echo "Starting H2 Server..."
 
       echo "DB provisioning complete!"
     SHELL
@@ -38,13 +44,17 @@ Vagrant.configure("2") do |config|
   config.vm.define "web" do |web|
     web.vm.hostname = "web-server"
 
-    config.vm.provision "shell", inline: <<-SHELL
-      sudo apt-get install -y openjdk-17-jdk
+    web.vm.provision "shell", inline: <<-SHELL
+      sudo apt-get install -y openjdk-17-jdk netcat
 
       while ! nc -z 192.168.33.11 8089; do
         echo "H2 db is not available, waiting 3 seconds"
         sleep 3
       done
+
+      echo "Starting REST API..."
+      cd /home/vagrant/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration
+      ./gradlew bootRun
 
       echo "Web provisioning complete!"
     SHELL
