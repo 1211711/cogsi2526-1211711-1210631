@@ -1,0 +1,90 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-22.04"
+
+  config.ssh.username = "vagrant"
+  config.ssh.password = "vagrant"
+
+  config.vm.synced_folder "./shared", "/vagrant"
+
+  config.ssh.insert_key = false
+  config.ssh.private_key_path = ["./shared/.ssh/ssh_vagrant_key"]
+  config.vm.provision "file", source: "~/.ssh/ssh_vagrant_key.pub", destination: "/home/vagrant/.ssh/authorized_keys"
+
+  # Global update for all VMs
+  config.vm.provision "shell", inline: <<-SHELL
+    sudo apt-get update
+    sudo apt-get install -y git
+
+    # Clone project
+    cd /home/vagrant/
+    git clone https://github.com/1211711/cogsi2526-1211711-1210631.git
+    cd cogsi2526-1211711-1210631
+    git checkout feature/issue-19/setup_multiple_virtual_machines
+    git pull
+
+    # Setup SSH keys for vagrant user
+    chown -R vagrant:vagrant /home/vagrant/.ssh
+    chmod 600 /home/vagrant/.ssh/authorized_keys
+
+    echo "Global provisioning complete!"
+  SHELL
+
+  config.vm.define "db" do |db|
+    db.vm.hostname = "db-server"
+
+    db.vm.provider :vmware_desktop do |vmware|
+        vmware.memory = 1024
+    end
+
+    # Setup a static id to allow VM web to connect
+    db.vm.network "private_network", ip: "192.168.33.11"
+    db.vm.network "forwarded_port", guest: 9092, host: 9092
+
+    db.vm.provision "shell", inline: <<-SHELL
+      sudo apt-get install -y openjdk-17-jdk ufw
+
+      sudo ufw --force enable
+      sudo ufw allow from 192.168.33.12 to any port 9092
+      sudo ufw deny 9092
+
+      cd /home/vagrant/
+      mkdir -p shared/database
+
+      echo "Starting H2 Server..."
+      cd /home/vagrant/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration
+      ./gradlew startH2Server
+
+      echo "DB provisioning complete!"
+    SHELL
+  end
+
+  config.vm.define "web" do |web|
+    web.vm.hostname = "web-server"
+
+    web.vm.provider :vmware_desktop do |vmware|
+        vmware.memory = 2048
+        vmware.cpus = 2
+    end
+
+    web.vm.network "private_network", ip: "192.168.33.12"
+
+    web.vm.provision "shell", inline: <<-SHELL
+      sudo apt-get install -y openjdk-17-jdk netcat
+
+      while ! nc -z 192.168.33.11 9092; do
+        echo "H2 db is not available, waiting 3 seconds"
+        sleep 3
+      done
+
+      echo "Starting REST API..."
+      cd /home/vagrant/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration
+      ./gradlew bootRun
+
+      echo "Web provisioning complete!"
+    SHELL
+  end
+
+end
