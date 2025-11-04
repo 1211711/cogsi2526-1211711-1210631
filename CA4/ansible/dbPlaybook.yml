@@ -1,0 +1,37 @@
+---
+- name: Database VM Provision
+  hosts: db
+  become: true
+  tasks:
+    - name: Download H2 Database
+      get_url:
+        url: https://repo1.maven.org/maven2/com/h2database/h2/2.4.240/h2-2.4.240.jar
+        dest: /opt/h2-2.4.240.jar
+
+    - name: Create shared directory for H2 database
+      file:
+        path: /vagrant/h2/h2db
+        state: directory
+        mode: '0770'
+
+    - name: Create H2 server systemd service file
+      copy:
+        dest: /etc/systemd/system/h2db.service
+        content: |
+          [Unit]
+          Description=H2 Database Server
+          After=network.target
+
+          [Service]
+          ExecStart=/usr/bin/java -cp "/opt/h2-2.4.240.jar" org.h2.tools.Server -tcp -tcpAllowOthers -tcpPort 9092 -baseDir /vagrant/h2db -ifNotExists
+          User=root
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Start H2 Database service
+      systemd:
+        name: h2db
+        state: started
+        enabled: true
