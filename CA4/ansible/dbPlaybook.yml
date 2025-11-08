@@ -6,7 +6,7 @@
     - name: Download H2 Database
       get_url:
         url: https://repo1.maven.org/maven2/com/h2database/h2/2.4.240/h2-2.4.240.jar
-        dest: /opt/h2-2.4.240.jar
+        dest: /opt/dev/h2-2.4.240.jar
 
     - name: Create shared directory for H2 database
       file:
@@ -23,7 +23,7 @@
           After=network.target
 
           [Service]
-          ExecStart=/usr/bin/java -cp "/opt/h2-2.4.240.jar" org.h2.tools.Server -tcp -tcpAllowOthers -tcpPort 9092 -baseDir /vagrant/h2db -ifNotExists
+          ExecStart=/usr/bin/java -cp "/opt/dev/h2-2.4.240.jar" org.h2.tools.Server -tcp -tcpAllowOthers -tcpPort 9092 -baseDir /vagrant/h2db -ifNotExists
           User=root
           Restart=always
 

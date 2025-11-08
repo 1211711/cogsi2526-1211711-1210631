@@ -93,7 +93,7 @@ This setup mimics a production-ready environment with persistent data and automa
         - name: Download H2 Database
           get_url:
             url: https://repo1.maven.org/maven2/com/h2database/h2/2.4.240/h2-2.4.240.jar
-            dest: /opt/h2-2.4.240.jar
+            dest: /opt/dev/h2-2.4.240.jar
     
         - name: Create shared directory for H2 database
           file:
@@ -110,7 +110,7 @@ This setup mimics a production-ready environment with persistent data and automa
               After=network.target
     
               [Service]
-              ExecStart=/usr/bin/java -cp "/opt/h2-2.4.240.jar" org.h2.tools.Server -tcp -tcpAllowOthers -tcpPort 9092 -baseDir /vagrant/h2db -ifNotExists
+              ExecStart=/usr/bin/java -cp "/opt/dev/h2-2.4.240.jar" org.h2.tools.Server -tcp -tcpAllowOthers -tcpPort 9092 -baseDir /vagrant/h2db -ifNotExists
               User=root
               Restart=always
     
@@ -168,18 +168,18 @@ This setup mimics a production-ready environment with persistent data and automa
       tasks:
         - name: Check if repo directory exists
           stat:
-            path: /opt/cogsi2526-1211711-1210631
+            path: /opt/dev/cogsi2526-1211711-1210631
           register: repo_dir
     
         - name: Clone the repository
           git:
             repo: 'https://github.com/1211711/cogsi2526-1211711-1210631.git'
-            dest: /opt/cogsi2526-1211711-1210631
+            dest: /opt/dev/cogsi2526-1211711-1210631
           when: not repo_dir.stat.exists
     
         - name: Update H2 database URL in application.yaml
           lineinfile:
-            path: /opt/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration/src/main/resources/application.properties
+            path: /opt/dev/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration/src/main/resources/application.properties
             regexp: 'jdbc:h2:tcp://192.168.33.11:9092/database'
             line: 'jdbc:h2:tcp://192.168.33.11:9092/h2db'
     

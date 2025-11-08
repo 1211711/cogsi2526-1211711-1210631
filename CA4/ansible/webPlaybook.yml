@@ -5,18 +5,18 @@
   tasks:
     - name: Check if repo directory exists
       stat:
-        path: /opt/cogsi2526-1211711-1210631
+        path: /opt/dev/cogsi2526-1211711-1210631
       register: repo_dir
 
     - name: Clone the repository
       git:
         repo: 'https://github.com/1211711/cogsi2526-1211711-1210631.git'
-        dest: /opt/cogsi2526-1211711-1210631
+        dest: /opt/dev/cogsi2526-1211711-1210631
       when: not repo_dir.stat.exists
 
     - name: Update H2 database URL in application.yaml
       lineinfile:
-        path: /opt/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration/src/main/resources/application.properties
+        path: /opt/dev/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration/src/main/resources/application.properties
         regexp: 'jdbc:h2:tcp://192.168.33.11:9092/database'
         line: 'jdbc:h2:tcp://192.168.33.11:9092/h2db'
 
