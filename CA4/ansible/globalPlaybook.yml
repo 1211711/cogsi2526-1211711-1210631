@@ -3,64 +3,64 @@
   hosts: all
   become: true
   tasks:
-  - name: Install git
-    apt:
-      name: git
-      state: present
-      update_cache: yes
+    - name: Install git
+      apt:
+        name: git
+        state: present
+        update_cache: yes
 
-  - name: Install java
-    apt:
-      name: openjdk-17-jdk
-      state: present
-      update_cache: yes
+    - name: Install java
+      apt:
+        name: openjdk-17-jdk
+        state: present
+        update_cache: yes
 
-  - name: Install libpam-pwquality
-    package:
-      name: "libpam-pwquality"
-      state: present
+    - name: Install libpam-pwquality
+      package:
+        name: "libpam-pwquality"
+        state: present
 
-  - name: Configure pam_pwquality
-    lineinfile:
-      path: "/etc/pam.d/common-password"
-      regexp: "pam_pwquality.so"
-      line: "password required pam_pwquality.so minlen=12 lcredit=-1 ucredit=-1 dcredit=-1 ocredit=-1 minClass=3 enforce_for_root"
-      state: present
+    - name: Configure pam_pwquality
+      lineinfile:
+        path: "/etc/pam.d/common-password"
+        regexp: "pam_pwquality.so"
+        line: "password required pam_pwquality.so minlen=12 lcredit=-1 ucredit=-1 dcredit=-1 ocredit=-1 minClass=3 enforce_for_root"
+        state: present
 
-  - name: Prevent reuse of last 5 passwords
-    lineinfile:
-      path: "/etc/pam.d/common-password"
-      insertafter: "pam_pwquality.so"
-      line: "password required pam_pwhistory.so remember=5 use_authtok enforce_for_root"
-      state: present
+    - name: Prevent reuse of last 5 passwords
+      lineinfile:
+        path: "/etc/pam.d/common-password"
+        insertafter: "pam_pwquality.so"
+        line: "password required pam_pwhistory.so remember=5 use_authtok enforce_for_root"
+        state: present
 
-  - name: Enable account lockout after 5 failed login attempts (lock 10 minutes)
-    blockinfile:
-      path: "/etc/pam.d/common-auth"
-      insertafter: "auth"
-      block: |
-        auth required pam_tally2.so deny=5 onerr=fail unlock_time=600
+    - name: Enable account lockout after 5 failed login attempts (lock 10 minutes)
+      blockinfile:
+        path: "/etc/pam.d/common-auth"
+        insertafter: "auth"
+        block: |
+          auth required pam_tally2.so deny=5 onerr=fail unlock_time=600
 
-  - name: Ensure group 'developers' exists
-    group:
-      name: developers
-      state: present
+    - name: Ensure group 'developers' exists
+      group:
+        name: developers
+        state: present
 
-  - name: Create the user 'devuser'
-    user:
-      name: devuser
-      shell: /bin/bash
-      password: $6$46fYmbHh0MQRB3pf$fG6UEoCDW5WkUjYmY9vNKX/nd2o9t3gaImEbQfRWWHy.wrE21gGNq6bxZLG9gTy683WlxdLz/8SkbtzjWsfuk0
+    - name: Create the user 'devuser'
+      user:
+        name: devuser
+        shell: /bin/bash
+        password: $6$46fYmbHh0MQRB3pf$fG6UEoCDW5WkUjYmY9vNKX/nd2o9t3gaImEbQfRWWHy.wrE21gGNq6bxZLG9gTy683WlxdLz/8SkbtzjWsfuk0
 
-  - name: Assign 'devuser' to the 'developers' group
-    user:
-      name: devuser
-      groups: developers
-      append: yes
+    - name: Assign 'devuser' to the 'developers' group
+      user:
+        name: devuser
+        groups: developers
+        append: yes
 
-  - name: Create a directory named 'dev'
-    file:
-      path: /opt/dev
-      state: directory
-      mode: 0750
-      group: developers
+    - name: Create a directory named 'dev'
+      file:
+        path: /opt/dev
+        state: directory
+        mode: 0750
+        group: developers
