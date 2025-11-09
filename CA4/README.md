@@ -86,42 +86,42 @@ Specifically, the task required to:
    This setup mimics a production-ready environment with persistent data and automatic startup.
 
     ```ruby
-    - name: Database VM Provision
-      hosts: db
-      become: true
-      tasks:
-        - name: Download H2 Database
-          get_url:
-            url: https://repo1.maven.org/maven2/com/h2database/h2/2.4.240/h2-2.4.240.jar
-            dest: /opt/h2-2.4.240.jar
-    
-        - name: Create shared directory for H2 database
-          file:
-            path: /vagrant/h2/h2db
-            state: directory
-            mode: '0770'
-    
-        - name: Create H2 server systemd service file
-          copy:
-            dest: /etc/systemd/system/h2db.service
-            content: |
-              [Unit]
-              Description=H2 Database Server
-              After=network.target
-    
-              [Service]
-              ExecStart=/usr/bin/java -cp "/opt/h2-2.4.240.jar" org.h2.tools.Server -tcp -tcpAllowOthers -tcpPort 9092 -baseDir /vagrant/h2db -ifNotExists
-              User=root
-              Restart=always
-    
-              [Install]
-              WantedBy=multi-user.target
-    
-        - name: Start H2 Database service
-          systemd:
-            name: h2db
-            state: started
-            enabled: true
+   - name: Database VM Provision
+     hosts: db
+     become: true
+     tasks:
+      - name: Download H2 Database
+        get_url:
+        url: https://repo1.maven.org/maven2/com/h2database/h2/2.4.240/h2-2.4.240.jar
+        dest: /opt/dev/h2-2.4.240.jar
+
+      - name: Create shared directory for H2 database
+        file:
+        path: /vagrant/h2/h2db
+        state: directory
+        mode: '0770'
+
+      - name: Create H2 server systemd service file
+        copy:
+        dest: /etc/systemd/system/h2db.service
+        content: |
+        [Unit]
+        Description=H2 Database Server
+        After=network.target
+
+            [Service]
+            ExecStart=/usr/bin/java -cp "/opt/dev/h2-2.4.240.jar" org.h2.tools.Server -tcp -tcpAllowOthers -tcpPort 9092 -baseDir /vagrant/h2db -ifNotExists
+            User=root
+            Restart=always
+
+            [Install]
+            WantedBy=multi-user.target
+
+      - name: Start H2 Database service
+        systemd:
+        name: h2db
+        state: started
+        enabled: true
     ```
 
 1. Download H2 Database
@@ -196,6 +196,13 @@ Specifically, the task required to:
             state: started
           retries: 5
           delay: 3
+
+       - name: Build the application
+         command: "./gradlew bootRun"
+         args:
+           chdir: /opt/dev/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration
+         async: 600
+         poll: 0
     ```
 
 2. Check if repo directory exists
@@ -232,11 +239,22 @@ Specifically, the task required to:
       5. state: started: waits until the port is open.
       6. retries and delay: retry logic for reliability.
    4. This improves provisioning resilience and avoids race conditions.
-6. Idempotent: Only starts the service if it’s not already running.
+6. Build the application
+   1. Uses Gradle to compile and run the Spring Boot application.
+   2. Module: command.
+   3. Options:
+      1. command: the command to execute.
+      2. args.chdir: changes to the application directory before running.
+      3. async: 600 runs the command asynchronously with a timeout of 600 seconds.
+      4. poll: 0 means it won’t wait for completion, allowing the app to run in the background (fire-and-forget).
+7. Idempotent: Only starts the service if it’s not already running.
    1. First run: service is created and started.
       ![First Run](img/1stRunWeb.png)
    2. Second run: no changes if the service is already active.
       ![Second Run](img/2ndRunWeb.png)
+
+With the port-forwarding configured in the Vagrantfile, we can access the REST API from the host machine at `http://localhost:8080/employees` and validate that it’s working properly with the H2 database connection.
+    ![Port Forward](img/webPortForwardingHeathCheck.png)
 
 ### 5. PAM Configuration
 1. To enhance security, PAM (Pluggable Authentication Modules) was configured to enforce strong password policies on both VMs.
@@ -294,7 +312,23 @@ Specifically, the task required to:
       2. insertafter: position to insert the block.
       3. block: multi-line configuration to enforce lockout.
 
-### 6. User and Group Creation
+### 6. Vagrant auto-inventory
+1. Vagrant automatically generates an Ansible inventory file at `/vagrant/.vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory` that lists all defined VMs and their connection details.
+   This file is used by Ansible to target the correct hosts during provisioning. On the web and db playbooks, the hosts are defined as `web` and `db`, respectively.
+   ```ruby
+   - name: Web VM Provision
+     hosts: web
+   ...
+   
+   - name: Database VM Provision
+     hosts: db
+   ...
+   ```
+2. The inventory file is dynamically created based on the Vagrantfile configuration, ensuring that any changes to VM definitions are reflected in the Ansible inventory without manual updates.
+3. In order to verify the inventory file generated by Vagrant, we can run `ansible-inventory --list -i .vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory`, being .vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory the path to the inventory file.
+   ![Inventory File](img/hostsOutput.png)
+
+### 7. User and Group Creation
 1. A dedicated user and group were created on both VMs to run the services securely. This configuration was added to the global playbook since it applies to both machines.
    ```ruby
     - name: Ensure group 'developers' exists
@@ -357,6 +391,63 @@ Specifically, the task required to:
       2. Denied
       
          ![Denied](img/folderPermissionDenied.png)
+
+### 8. System Health-Checks
+1. After provisioning, health checks were performed to ensure that both the H2 database and the Spring REST application were running correctly.
+2. H2 Database Health Check
+   1. The health check verifies that the H2 database is accessible on its TCP port (9092).
+   ```ruby
+    - name: Port HealthCheck
+      wait_for:
+        host: "localhost"
+        port: 9092
+        state: started
+        timeout: 5
+   ```
+   2. Module: wait_for.
+   3. Options:
+      1. host: target host (localhost).
+      2. port: TCP port to check (9092 for H2).
+      3. state: started ensures the port is open.
+      4. timeout: maximum wait time in seconds (5 seconds).
+   4. Although the _Start H2 Database service_ task already ensures the service is running, this health check adds an extra layer of verification.
+   5. Health check validation:
+      ![H2 Health Check](img/portHealthCheck.png)
+3. Spring REST Application Health Check
+   1. Similar to the H2 health check, but targets the REST API endpoint.
+   ```ruby
+       - name: Healthcheck
+      uri:
+        url: http://localhost:8080/employees
+        method: GET
+        return_content: true
+      register: http_check
+      until: http_check.status == 200
+      retries: 5
+      delay: 5
+      failed_when:
+        - http_check.status != 200
+        - "Unhealthy application response"
+      ignore_errors: true
+   ```
+   1. Module: uri.
+   2. Options:
+      1. url: endpoint to check.
+      2. method: HTTP method (GET).
+      3. return_content: true retrieves the response body.
+   3. Registers the result in http_check for further evaluation.
+   4. Retry Logic:
+      1. until: continues checking until the status is 200 (OK).
+      2. retries: 5 attempts.
+      3. delay: 5 seconds between attempts.
+   5. Error Handling:
+      1. failed_when: defines failure conditions.
+      2. ignore_errors: true allows the playbook to continue even if the health check fails.
+   6. Health check validation:
+      1. First run (successful):
+         ![Web Health Check Success](img/webHealthCheck.png)
+      2. Second run (failure):
+         ![Web Health Check Failure](img/webHealthCheckFailure.png):
 
 ## Alternative Solutions
 
@@ -457,7 +548,7 @@ Under Chef, the assignment would be structured into three cookbooks (or roles) t
    - Use the `directory` resource to create the shared directory for H2 data.
    - Use the `template` resource to create a systemd service file for H2.
    - Use the `service` resource to start and enable the H2 service.
-   - 
+
    ```ruby
    # Ensure base directory exists
    directory '/opt/dev' do
