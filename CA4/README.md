@@ -42,7 +42,7 @@ Specifically, the task required to:
 
 ### 2. Global Configuration (globalPlaybook.yml)
 
-1. This playbook applies a common base setup across all virtual machines, ensuring they share essential tools such as Git (for repository cloning) and OpenJDK 17 (for Java-based applications).
+1. This playbook applies a common base setup across all virtual machines, ensuring they share essential tools such as **Git** (for repository cloning) and **OpenJDK 17** (for Java-based applications).
     ```ruby
     - name: Global VMs Provision
       hosts: all
@@ -61,29 +61,29 @@ Specifically, the task required to:
             update_cache: yes
     ```
 
-1. Install git
+1. Install **git**
    1. Git is required to clone the project repository containing the Spring REST application.
-   2. Module: apt (used for managing Debian-based packages like Ubuntu).
-   3. Options:
-      1. name: git — specifies the package to install.
-      2. state: present — ensures Git is installed. Possible values:
-      3. present: installs the package if missing.
-      4. absent: removes it.
-      5. latest: upgrades it to the newest version.
-      6. update_cache: yes — refreshes the package index before installation.
-      7. yes: updates the cache to ensure the latest package metadata.
-      8. no: skips update (faster but risk of outdated metadata).
+   2. **Module**: apt (used for managing Debian-based packages like Ubuntu).
+   3. **Options**:
+      1. **name**: git — specifies the package to install.
+      2. **state**: present — ensures Git is installed. Possible values:
+      3. **present**: installs the package if missing.
+      4. **absent**: removes it.
+      5. **latest**: upgrades it to the newest version.
+      6. **update_cache**: yes — refreshes the package index before installation.
+      7. **yes**: updates the cache to ensure the latest package metadata.
+      8. **no**: skips update (faster but risk of outdated metadata).
 
-2. Install java
+2. Install **java**
    1. The Spring application and H2 database both require a Java runtime environment.
-   2. Options: same as above, ensuring the package openjdk-17-jdk is installed with up-to-date dependencies.
+   2. **Options**: same as above, ensuring the package openjdk-17-jdk is installed with up-to-date dependencies.
 
 3. Both tasks are idempotent, meaning that if Java or Git are already installed, running the playbook again will result in no changes.
 
 ### 3. Database Server Configuration (dbPlaybook.yml)
 
 1. The database server playbook installs and configures H2 Database to run as a background service.
-   This setup mimics a production-ready environment with persistent data and automatic startup.
+   This setup mimics a **production-ready environment** with persistent data and automatic startup.
 
     ```ruby
    - name: Database VM Provision
@@ -126,37 +126,37 @@ Specifically, the task required to:
 
 1. Download H2 Database
    1. The H2 JAR file must be downloaded from the Maven repository to run the database server.
-   2. Module: get_url (fetches files from remote URLs).
-   3. Options:
-      1. url: the download source.
-      2. dest: local destination path.
-      3. mode: optional; defines file permissions (not needed here).
-      4. Idempotent behavior: If the file already exists with the same checksum, it won’t download again.
+   2. **Module**: get_url (fetches files from remote URLs).
+   3. **Options**:
+      1. **url**: the download source.
+      2. **dest**: local destination path.
+      3. **mode**: optional; defines file permissions (not needed here).
+      4. **Idempotent behavior**: If the file already exists with the same checksum, it won’t download again.
 2. Create shared directory
    1. The H2 server stores its data files here. The /vagrant path is synced with the host machine.
-   2. Module: file.
-   3. Options:
-      1. path: target directory path.
-      2. state: directory: ensures the path is a directory.
-      3. mode: '0770': sets Unix permissions (read/write/execute for owner and group only).
-      4. Possible states: file, absent, touch, link, hard, etc.
+   2. **Module**: file.
+   3. **Options**:
+      1. **path**: target directory path.
+      2. **state**: directory: ensures the path is a directory.
+      3. **mode**: '0770': sets Unix permissions (read/write/execute for owner and group only).
+      4. **Possible states**: file, absent, touch, link, hard, etc.
 3. Create systemd service file
    1. Allows the H2 database to start automatically and run persistently as a background service.
-   2. Module: copy.
-   3. Options:
-      1. dest: where the file should be written.
-      2. content: inline content for the service definition.
-      3. Idempotent behavior: If the file already exists with the same content, it won’t overwrite.
+   2. **Module**: copy.
+   3. **Options**:
+      1. **dest**: where the file should be written.
+      2. **content**: inline content for the service definition.
+      3. **Idempotent behavior**: If the file already exists with the same content, it won’t overwrite.
 4. Start H2 Database service
    1. Ensures that H2 starts immediately and remains active after reboots.
-   2. Module: systemd.
-   3. Options:
-      1. name: service name.
-      2. state: started — ensures the service is running.
-      3. stopped: would stop the service.
-      4. restarted: forces a restart.
-      5. enabled: true — starts the service automatically at boot.
-5. Idempotent: Only starts the service if it’s not already running.
+   2. **Module**: systemd.
+   3. **Options**:
+      1. **name**: service name.
+      2. **state**: started — ensures the service is running.
+      3. **stopped**: would stop the service.
+      4. **restarted**: forces a restart.
+      5. **enabled**: true — starts the service automatically at boot.
+5. **Idempotent**: Only starts the service if it’s not already running.
    1. First run: service is created and started.
       ![First Run](img/1stRunDb.png)
    2. Second run: no changes if the service is already active.
@@ -164,7 +164,7 @@ Specifically, the task required to:
 
 ### 4. Web Server Configuration (webPlaybook.yml)
 
-1. This playbook configures the web VM to deploy the REST API, connect it to the H2 database, and ensure it only runs once the DB is ready.
+1. This playbook configures the web VM to **deploy the REST API**, connect it to the H2 database, and ensure it only runs once the DB is ready.
     ```ruby
     - name: Web VM Provision
       hosts: web
@@ -207,47 +207,47 @@ Specifically, the task required to:
 
 2. Check if repo directory exists
    1. Avoid cloning the repository multiple times.
-   2. Module: stat (checks file or directory status).
-   3. Options:
-      1. path: location to check.
+   2. **Module**: stat (checks file or directory status).
+   3. **Options**:
+      1. **path**: location to check.
       2. Registers result in repo_dir, which is used later for conditional logic.
 3. Clone the repository
    1. The application code is hosted in a GitHub repository.
-   2. Module: git.
-   3. Options:
-      1. repo: URL of the Git repository.
-      2. dest: destination path to clone into.
-   4. Conditional:
+   2. **Module**: git.
+   3. **Options**:
+      1. **repo**: URL of the Git repository.
+      2. **dest**: destination path to clone into.
+   4. **Conditional**:
       1. ```when: not repo_dir.stat.exists``` only clones if the directory doesn’t already exist.
-   5. Idempotent: Ensures cloning happens only once.
+   5. **Idempotent**: Ensures cloning happens only once.
 4. Update H2 database URL
    1. Adjusts the Spring Boot configuration file so the application connects to the database VM.
-   2. Module: lineinfile.
-   3. Options:
-      1. path: file to edit.
-      2. regexp: regular expression to find the target line.
-      3. line: replacement line.
-   4. Idempotent: Only makes changes if the current line differs.
+   2. **Module**: lineinfile.
+   3. **Options**:
+      1. **path**: file to edit.
+      2. **regexp**: regular expression to find the target line.
+      3. **line**: replacement line.
+   4. **Idempotent**: Only makes changes if the current line differs.
 5. Wait for H2 database
    1. Ensures that the REST API starts only after the database is running.
-   2. Module: wait_for.
-   3. Options:
-      1. host: IP address of the DB server.
-      2. port: port number to check (9092 for H2).
-      3. delay: seconds to wait before the first check.
-      4. timeout: maximum wait time.
-      5. state: started: waits until the port is open.
-      6. retries and delay: retry logic for reliability.
+   2. **Module**: wait_for.
+   3. **Options**:
+      1. **host**: IP address of the DB server.
+      2. **port**: port number to check (9092 for H2).
+      3. **delay**: seconds to wait before the first check.
+      4. **timeout**: maximum wait time.
+      5. **state**: started: waits until the port is open.
+      6. **retries and delay**: retry logic for reliability.
    4. This improves provisioning resilience and avoids race conditions.
 6. Build the application
    1. Uses Gradle to compile and run the Spring Boot application.
-   2. Module: command.
-   3. Options:
-      1. command: the command to execute.
-      2. args.chdir: changes to the application directory before running.
-      3. async: 600 runs the command asynchronously with a timeout of 600 seconds.
-      4. poll: 0 means it won’t wait for completion, allowing the app to run in the background (fire-and-forget).
-7. Idempotent: Only starts the service if it’s not already running.
+   2. **Module**: command.
+   3. **Options**:
+      1. **command**: the command to execute.
+      2. **args.chdir**: changes to the application directory before running.
+      3. **async**: 600 runs the command asynchronously with a timeout of 600 seconds.
+      4. **poll**: 0 means it won’t wait for completion, allowing the app to run in the background (fire-and-forget).
+7. **Idempotent**: Only starts the service if it’s not already running.
    1. First run: service is created and started.
       ![First Run](img/1stRunWeb.png)
    2. Second run: no changes if the service is already active.
@@ -257,7 +257,7 @@ With the port-forwarding configured in the Vagrantfile, we can access the REST A
     ![Port Forward](img/webPortForwardingHeathCheck.png)
 
 ### 5. PAM Configuration
-1. To enhance security, PAM (Pluggable Authentication Modules) was configured to enforce strong password policies on both VMs.
+1. To enhance security, **PAM** (Pluggable Authentication Modules) was configured to **enforce strong password policies** on both VMs.
    This ensures that users must create passwords that meet specific complexity requirements.
    ```ruby
     - name: Install libpam-pwquality
@@ -289,31 +289,31 @@ With the port-forwarding configured in the Vagrantfile, we can access the REST A
    
 2. Install libpam-pwquality 
    1. This package provides the pam_pwquality module for enforcing password complexity.
-   2. Module: package.
-   3. Options:
-      1. name: package name.
-      2. state: present ensures installation.
+   2. **Module**: package.
+   3. **Options**:
+      1. **name**: package name.
+      2. **state**: present ensures installation.
 3. Configure pam_pwquality
    1. Sets password complexity requirements (minimum length, character types).
-   2. Module: lineinfile.
-   3. Options:
-      1. path: configuration file.
-      2. regexp: identifies the line to replace.
-      3. line: new configuration line.
+   2. **Module**: lineinfile.
+   3. **Options**:
+      1. **path**: configuration file.
+      2. **regexp**: identifies the line to replace.
+      3. **line**: new configuration line.
 4. Prevent reuse of last 5 passwords
    1. Ensures users cannot reuse their last 5 passwords.
-   2. Module: lineinfile.
-   3. Options: similar to above, inserting after the pam_pwquality line.
+   2. **Module**: lineinfile.
+   3. **Options**: similar to above, inserting after the pam_pwquality line.
 5. Enable account lockout
    1. Locks user accounts after 5 failed login attempts for 10 minutes.
    2. Module: blockinfile.
-   3. Options:
-      1. path: configuration file.
-      2. insertafter: position to insert the block.
-      3. block: multi-line configuration to enforce lockout.
+   3. **Options**:
+      1. **path**: configuration file.
+      2. **insertafter**: position to insert the block.
+      3. **block**: multi-line configuration to enforce lockout.
 
 ### 6. Vagrant auto-inventory
-1. Vagrant automatically generates an Ansible inventory file at `/vagrant/.vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory` that lists all defined VMs and their connection details.
+1. Vagrant automatically generates an **Ansible inventory file** at `/vagrant/.vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory` that lists all **defined VMs** and their **connection details**.
    This file is used by Ansible to target the correct hosts during provisioning. On the web and db playbooks, the hosts are defined as `web` and `db`, respectively.
    ```ruby
    - name: Web VM Provision
@@ -324,7 +324,7 @@ With the port-forwarding configured in the Vagrantfile, we can access the REST A
      hosts: db
    ...
    ```
-2. The inventory file is dynamically created based on the Vagrantfile configuration, ensuring that any changes to VM definitions are reflected in the Ansible inventory without manual updates.
+2. The inventory file is **dynamically created** based on the Vagrantfile configuration, ensuring that any changes to VM definitions are reflected in the Ansible inventory without manual updates.
 3. In order to verify the inventory file generated by Vagrant, we can run `ansible-inventory --list -i .vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory`, being .vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory the path to the inventory file.
    ![Inventory File](img/hostsOutput.png)
 
@@ -357,32 +357,41 @@ With the port-forwarding configured in the Vagrantfile, we can access the REST A
    ```
 2. Ensure group 'developers' exists
    1. Creates a group named 'developers' if it doesn't already exist.
-   2. Module: group.
-   3. Options:
-      1. name: group name.
-      2. state: present ensures the group is created.
+   2. **Module**: group.
+   3. **Options**:
+      1. **name**: group name.
+      2. **state**: present ensures the group is created.
 3. Create the user 'devuser'
    1. Creates a user named 'devuser' with a specified shell and encrypted password.
-   2. Module: user.
-   3. Options:
-      1. name: username.
-      2. shell: login shell.
-      3. password: encrypted password string.
+   2. **Module**: user.
+   3. **Options**:
+      1. **name**: username.
+      2. **shell**: login shell.
+      3. **password**: encrypted password string.
+   4. Password generation:
+      1. On a real production environment the password should be stored in a system like [Ansible Vault](https://docs.ansible.com/ansible/latest/vault_guide/index.html) which allows to securely store sensitive data.
+      2. But as this is just an example, and to be more practical, we encrypted the password manually by running:
+         ```shell
+         $ sudo apt update
+         $ sudo apt install pwgen whois
+         $ pass=`pwgen --secure --capitalize --numerals --symbols 12 1`
+         $ echo $pass | mkpasswd --stdin --method=sha-512; echo $pass
+         ```
 4. Assign 'devuser' to the 'developers' group
    1. Adds 'devuser' to the 'developers' group.
-   2. Module: user.
-   3. Options:
-      1. name: username.
-      2. groups: group name.
-      3. append: yes ensures the user is added to the group without removing existing groups.
+   2. **Module**: user.
+   3. **Options**:
+      1. **name**: username.
+      2. **groups**: group name.
+      3. **append**: yes ensures the user is added to the group without removing existing groups.
 5. Create a directory named 'dev'
    1. Creates a directory at /opt/dev with specific permissions and group ownership.
-   2. Module: file.
-   3. Options:
-      1. path: directory path.
-      2. state: directory ensures the path is a directory.
-      3. mode: 0750 sets permissions (owner: read/write/execute, group: read/execute, others: none).
-      4. group: developers sets group ownership.
+   2. **Module**: file.
+   3. **Options**:
+      1. **path**: directory path.
+      2. **state**: directory ensures the path is a directory.
+      3. **mode**: 0750 sets permissions (owner: read/write/execute, group: read/execute, others: none).
+      4. **group**: developers sets group ownership.
    4. Folder permissions:
       1. Allowed
       
@@ -404,14 +413,14 @@ With the port-forwarding configured in the Vagrantfile, we can access the REST A
         state: started
         timeout: 5
    ```
-   2. Module: wait_for.
-   3. Options:
-      1. host: target host (localhost).
-      2. port: TCP port to check (9092 for H2).
-      3. state: started ensures the port is open.
-      4. timeout: maximum wait time in seconds (5 seconds).
+   2. **Module**: wait_for.
+   3. **Options**:
+      1. **host**: target host (localhost).
+      2. **port**: TCP port to check (9092 for H2).
+      3. **state**: started ensures the port is open.
+      4. **timeout**: maximum wait time in seconds (5 seconds).
    4. Although the _Start H2 Database service_ task already ensures the service is running, this health check adds an extra layer of verification.
-   5. Health check validation:
+   5. **Health check validation**:
       ![H2 Health Check](img/portHealthCheck.png)
 3. Spring REST Application Health Check
    1. Similar to the H2 health check, but targets the REST API endpoint.
@@ -430,47 +439,47 @@ With the port-forwarding configured in the Vagrantfile, we can access the REST A
         - "Unhealthy application response"
       ignore_errors: true
    ```
-   1. Module: uri.
-   2. Options:
-      1. url: endpoint to check.
-      2. method: HTTP method (GET).
-      3. return_content: true retrieves the response body.
+   1. **Module**: uri.
+   2. **Options**:
+      1. **url**: endpoint to check.
+      2. **method**: HTTP method (GET).
+      3. **return_content**: true retrieves the response body.
    3. Registers the result in http_check for further evaluation.
-   4. Retry Logic:
-      1. until: continues checking until the status is 200 (OK).
-      2. retries: 5 attempts.
-      3. delay: 5 seconds between attempts.
-   5. Error Handling:
-      1. failed_when: defines failure conditions.
-      2. ignore_errors: true allows the playbook to continue even if the health check fails.
-   6. Health check validation:
-      1. First run (successful):
+   4. **Retry Logic**:
+      1. **until**: continues checking until the status is 200 (OK).
+      2. **retries**: 5 attempts.
+      3. **delay**: 5 seconds between attempts.
+   5. **Error Handling**:
+      1. **failed_when**: defines failure conditions.
+      2. **ignore_errors**: true allows the playbook to continue even if the health check fails.
+   6. **Health check validation**:
+      1. Successful:
          ![Web Health Check Success](img/webHealthCheck.png)
-      2. Second run (failure):
+      2. Failure:
          ![Web Health Check Failure](img/webHealthCheckFailure.png):
 
 ## Alternative Solutions
 
 While this assignment uses Ansible as the configuration management tool to automate PAM policies, user creation, and 
 system hardening, alternative technologies exist that provide similar functionality and are widely used in DevOps environments.
-Two of the most established tools in this space are Chef and Puppet.
+Two of the most established tools in this space are **Chef** and **Puppet**.
 
-Both aim to achieve Infrastructure as Code (IaC) — defining system configurations declaratively and applying them consistently 
+Both aim to achieve **Infrastructure as Code (IaC)** — defining system configurations declaratively and applying them consistently 
 across multiple servers — but differ in architecture, syntax, and execution models.
 
 For this module, we will focus on Chef as an alternative solution.
 
 ### Chef
-Chef is a Ruby-based automation framework that uses a pull-based model: each node runs a Chef client that retrieves configuration definitions (called recipes) from a central Chef server.
-These recipes are grouped into cookbooks, describing the exact state of system resources such as packages, users, services, and configuration files.
+Chef is a **Ruby-based automation framework** that uses a **pull-based model**: each node runs a Chef client that retrieves configuration definitions (called recipes) from a central Chef server.
+These recipes are grouped into **cookbooks**, describing the exact state of system resources such as packages, users, services, and configuration files.
 
 Under Chef, the assignment would be structured into three cookbooks (or roles) to mirror the existing playbooks:
 
-| Ansible              | Chef                        | Goal                                     |
-|----------------------|-----------------------------|------------------------------------------|
-| `globalPlaybook.yml` | `base` cookbook | Installs base packages, enforces PAM security, and manages users and groups                 |
-| `dbPlaybook.yml`     | `database` cookbook | Downloads and configures the H2 database service                     |
-| `webPlaybook.yml`    | `webapp` cookbook | Deploys the Spring Boot REST application and connects it to the database                 |
+| Ansible              | Chef                | Goal                                                                        |
+|----------------------|---------------------|-----------------------------------------------------------------------------|
+| `globalPlaybook.yml` | `base` cookbook     | Installs base packages, enforces PAM security, and manages users and groups |
+| `dbPlaybook.yml`     | `database` cookbook | Downloads and configures the H2 database service                            |
+| `webPlaybook.yml`    | `webapp` cookbook   | Deploys the Spring Boot REST application and connects it to the database    |
 
 #### 1. Implementation Steps
 1. **Base Cookbook**:
@@ -484,63 +493,63 @@ Under Chef, the assignment would be structured into three cookbooks (or roles) t
    - Use the `directory` resource to create the `/opt/dev` directory with appropriate permissions.
    
    ```ruby
-      # Install required packages
-      %w(git openjdk-17-jdk libpam-pwquality).each do |pkg|
-        package pkg do
-          action :install
+    # Install required packages
+    %w(git openjdk-17-jdk libpam-pwquality).each do |pkg|
+      package pkg do
+        action :install
+      end
+    end
+
+    # Configure PAM password complexity
+    ruby_block 'configure pam_pwquality' do
+      block do
+        file = '/etc/pam.d/common-password'
+        text = 'password required pam_pwquality.so minlen=12 lcredit=-1 ucredit=-1 dcredit=-1 ocredit=-1 minClass=3 enforce_for_root'
+        fe = Chef::Util::FileEdit.new(file)
+        fe.search_file_replace_line(/pam_pwquality.so/, text)
+        fe.write_file
+      end
+    end
+  
+    # Prevent reuse of last 5 passwords
+    ruby_block 'prevent password reuse' do
+      block do
+        file = '/etc/pam.d/common-password'
+        line = 'password required pam_pwhistory.so remember=5 use_authtok enforce_for_root'
+        fe = Chef::Util::FileEdit.new(file)
+        fe.insert_line_if_no_match(/pam_pwhistory.so/, line)
+        fe.write_file
+      end
+    end
+  
+    # Enable account lockout after 5 failed attempts for 10 minutes
+    ruby_block 'lockout policy' do
+      block do
+        file = '/etc/pam.d/common-auth'
+        insert = "auth required pam_tally2.so deny=5 onerr=fail unlock_time=600"
+        content = ::File.read(file)
+        unless content.include?(insert)
+          ::File.open(file, 'a') { |f| f.puts insert }
         end
       end
-      
-      # Configure PAM password complexity
-      ruby_block 'configure pam_pwquality' do
-        block do
-          file = '/etc/pam.d/common-password'
-          text = 'password required pam_pwquality.so minlen=12 lcredit=-1 ucredit=-1 dcredit=-1 ocredit=-1 minClass=3 enforce_for_root'
-          fe = Chef::Util::FileEdit.new(file)
-          fe.search_file_replace_line(/pam_pwquality.so/, text)
-          fe.write_file
-        end
-      end
-      
-      # Prevent reuse of last 5 passwords
-      ruby_block 'prevent password reuse' do
-        block do
-          file = '/etc/pam.d/common-password'
-          line = 'password required pam_pwhistory.so remember=5 use_authtok enforce_for_root'
-          fe = Chef::Util::FileEdit.new(file)
-          fe.insert_line_if_no_match(/pam_pwhistory.so/, line)
-          fe.write_file
-        end
-      end
-      
-      # Enable account lockout after 5 failed attempts for 10 minutes
-      ruby_block 'lockout policy' do
-        block do
-          file = '/etc/pam.d/common-auth'
-          insert = "auth required pam_tally2.so deny=5 onerr=fail unlock_time=600"
-          content = ::File.read(file)
-          unless content.include?(insert)
-            ::File.open(file, 'a') { |f| f.puts insert }
-          end
-        end
-      end
-      
-      # Create group and user
+    end
+  
+    # Create group and user
+    group 'developers'
+  
+    user 'devuser' do
+      shell '/bin/bash'
+      password '$6$46fYmbHh0MQRB3pf$fG6UEoCDW5WkUjYmY9vNKX/nd2o9t3gaImEbQfRWWHy.wrE21gGNq6bxZLG9gTy683WlxdLz/8SkbtzjWsfuk0'
       group 'developers'
-      
-      user 'devuser' do
-        shell '/bin/bash'
-        password '$6$46fYmbHh0MQRB3pf$fG6UEoCDW5WkUjYmY9vNKX/nd2o9t3gaImEbQfRWWHy.wrE21gGNq6bxZLG9gTy683WlxdLz/8SkbtzjWsfuk0'
-        group 'developers'
-      end
-      
-      # Create shared developer directory
-      directory '/opt/dev' do
-        owner 'root'
-        group 'developers'
-        mode '0750'
-        recursive true
-      end
+    end
+  
+    # Create shared developer directory
+    directory '/opt/dev' do
+      owner 'root'
+      group 'developers'
+      mode '0750'
+      recursive true
+    end
    ```
 
 ### 2. **Database Cookbook**:
@@ -647,17 +656,17 @@ Under Chef, the assignment would be structured into three cookbooks (or roles) t
 
 ### 4. Chef vs Ansible: Key Differences and Advantages
 
-Both Chef and Ansible are configuration management tools that implement the concept of Infrastructure as Code, allowing administrators to automate and maintain system configurations in a reproducible and idempotent way.
+Both **Chef** and **Ansible** are configuration management tools that implement the concept of **Infrastructure as Code**, allowing administrators to automate and maintain system configurations in a reproducible and idempotent way.
 However, they differ significantly in their architecture, language, and operational philosophy.
 
-Ansible follows a push-based, agentless model: the control node connects to target machines over SSH, executes YAML-defined playbooks, and applies changes immediately. This simplicity makes it lightweight, easy to learn, and ideal for smaller or short-lived environments such as academic labs or development setups.
+**Ansible** follows a **push-based**, **agentless model**: the control node connects to target machines over SSH, executes YAML-defined playbooks, and applies changes immediately. This simplicity makes it lightweight, easy to learn, and ideal for smaller or short-lived environments such as academic labs or development setups.
 It requires no persistent agents, and all configuration logic is expressed in a human-readable declarative format.
 
-Chef, in contrast, is pull-based and agent-driven. Each managed node runs a Chef Client that periodically retrieves and applies configuration policies — known as cookbooks — from a central Chef Server. These cookbooks are written in Ruby DSL, providing more flexibility and reusability but also introducing a steeper learning curve.
+**Chef**, in contrast, is **pull-based** and **agent-driven**. Each managed node runs a Chef Client that periodically retrieves and applies configuration policies — known as cookbooks — from a central Chef Server. These cookbooks are written in Ruby DSL, providing more flexibility and reusability but also introducing a steeper learning curve.
 This architecture is particularly effective in large or production-grade infrastructures where continuous configuration enforcement and drift correction are essential.
 
-While Ansible is more focus on simplicity, speed, and accessibility, Chef offers greater scalability, modularity, and compliance integration through its own ecosystem.
-Ansible is considered the more pragmatic choice in enterprise environments demanding continuous and large-scale infrastructure management. On the other hand chef becomes the more powerful long-term solution.
+While **Ansible** is more **focus** on **simplicity, speed, and accessibility**, **Chef offers** greater **scalability, modularity, and compliance integration** through its own ecosystem.
+Ansible is considered the more pragmatic choice in enterprise environments demanding continuous and large-scale infrastructure management. On the other hand **Chef becomes the more powerful long-term solution**.
 
 ---
 
