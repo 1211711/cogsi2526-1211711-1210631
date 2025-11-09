@@ -30,14 +30,21 @@
       retries: 5
       delay: 3
 
+    - name: Build the application
+      command: "./gradlew bootRun"
+      args:
+        chdir: /opt/dev/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration
+      async: 600
+      poll: 0
+
     - name: Healthcheck
       uri:
-        url: http://192.168.33.12:9092/employees
+        url: http://localhost:8080/employees
         method: GET
         return_content: true
       register: http_check
       until: http_check.status == 200
-      retries: 20
+      retries: 5
       delay: 5
       failed_when:
         - http_check.status != 200

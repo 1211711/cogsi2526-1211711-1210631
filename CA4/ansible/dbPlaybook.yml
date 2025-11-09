@@ -35,3 +35,10 @@
         name: h2db
         state: started
         enabled: true
+
+    - name: Port HealthCheck
+      wait_for:
+        host: "localhost"
+        port: 9092
+        state: started
+        timeout: 5
