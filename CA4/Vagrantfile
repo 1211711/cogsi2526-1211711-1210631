@@ -1,0 +1,47 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-22.04"
+
+    config.vm.provision "ansible" do |ansible|
+        ansible.playbook = "./ansible/globalPlaybook.yml"
+        ansible.compatibility_mode = "2.0"
+    end
+
+  config.vm.define "db" do |db|
+    db.vm.hostname = "db-server"
+
+    db.vm.provider :vmware_desktop do |vmware|
+        vmware.memory = 1024
+    end
+
+    # Setup a static id to allow VM web to connect
+    db.vm.network "private_network", ip: "192.168.33.11"
+    db.vm.network "forwarded_port", guest: 9092, host: 9092
+
+    db.vm.provision "ansible" do |ansible|
+        ansible.playbook = "./ansible/dbPlaybook.yml"
+        ansible.compatibility_mode = "2.0"
+    end
+  end
+
+  config.vm.define "web" do |web|
+    web.vm.hostname = "web-server"
+
+    web.vm.network "forwarded_port", guest: 8080, host: 8090
+
+    web.vm.provider :vmware_desktop do |vmware|
+        vmware.memory = 2048
+        vmware.cpus = 2
+    end
+
+    web.vm.network "private_network", ip: "192.168.33.12"
+
+    web.vm.provision "ansible" do |ansible|
+        ansible.playbook = "./ansible/webPlaybook.yml"
+        ansible.compatibility_mode = "2.0"
+    end
+  end
+
+end
