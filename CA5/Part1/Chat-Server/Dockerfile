@@ -13,7 +13,7 @@ RUN ./gradlew build -x test --no-daemon
 
 # Setup the jar and build
 FROM openjdk:17.0.1-jdk-slim
-WORKDIR /app/CA2/Part1/gradle_basic_demo-main
+WORKDIR /app
 COPY --from=builder /app/CA2/Part1/gradle_basic_demo-main/build/libs/*.jar app.jar
 
 EXPOSE 59001
