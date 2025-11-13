@@ -143,3 +143,188 @@ As it can be seen that v1 and v2 are similar in size because both include only t
 with build tools and source code discarded or never included. 
 
 On the other hand v1-large is much larger because it keeps the full repository, gradle caches, and build tools in the final image.
+
+## 2. Tut Test Api
+
+### 2.1 Image v1 - Multi-stage
+
+This image is very similar to the chat server one. The only differences being the `WORKDIR` paths, the `git checkout` section and the execution (directly by jar).
+
+```dockerfile
+FROM openjdk:17.0.1-jdk-slim AS builder
+
+WORKDIR /app
+
+RUN apt update &&  \
+    apt install -y git
+
+# Clone and Build
+RUN git clone https://github.com/1211711/cogsi2526-1211711-1210631.git /app
+
+WORKDIR /app
+RUN git fetch
+RUN git checkout bugfix/no-issue/fix_tut_rest_application_properties
+
+WORKDIR /app/CA2/Part2/gradle-migration
+RUN ./gradlew build -x test --no-daemon
+
+# Setup the jar and build
+FROM openjdk:17.0.1-jdk-slim
+WORKDIR /app
+COPY --from=builder /app/CA2/Part2/gradle-migration/build/libs/*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar", "8080"]
+```
+
+1. Steps (only relevant ones)
+   1. `git fetch` - fetch all of the available branches.
+   2. `git checkout` - checkouts to the desired branch. This was done since on the develop branch the application properties file was configured to connect to H2 via tcp (which is not the goal of this part).
+   3. `ENTRYPOINT` - the entrypoint executes the jar file directly
+
+### 2.2 Image v1-large - Single-stage build
+
+```dockerfile
+FROM openjdk:17.0.1-jdk-slim
+
+WORKDIR /app
+
+RUN apt update &&  \
+    apt install -y git
+
+# Clone and Build
+RUN git clone https://github.com/1211711/cogsi2526-1211711-1210631.git /app
+
+WORKDIR /app
+RUN git fetch
+RUN git checkout bugfix/no-issue/fix_tut_rest_application_properties
+
+WORKDIR /app/CA2/Part2/gradle-migration
+RUN ./gradlew build -x test --no-daemon
+
+WORKDIR /app
+COPY /app/CA2/Part2/gradle-migration/build/libs/*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar", "8080"]
+```
+
+Once again the similarities between this and the chat server are obvious.
+
+### 2.3 Image v2 - Prebuilt JAR
+
+```dockerfile
+FROM openjdk:17.0.1-jdk-slim
+
+WORKDIR /app
+
+COPY build/libs/*.jar app.jar
+
+EXPOSE 59001
+
+ENTRYPOINT ["java", "-jar", "app.jar", "8080"]
+```
+
+### 2.4 Comparison and Analysis
+
+In order to build each image there was the need to run the following commands:
+
+- `docker build -t tut-rest:{imageVersion} .`
+  - `-t tut-rest:{imageVersion}` → names and tags the image.
+    - Image version examples: v1, v1-large, v2.
+  - `.` → specifies the build context (current directory).
+
+Also in order to run the container after building the image the docker run command was used:
+- `docker run -d -p 8080:8080 tut-rest:{imageVersion}`
+  - `-d` - run in detached mode.
+  - `-p host_port:container_port` - port mapping.
+
+| Version | Size | Automation                  | Size                                                                                       |
+|---------|------|-----------------------------|--------------------------------------------------------------------------------------------|
+| v1      | small | fully automated             | 740.06MB                                    
+| v1-large| large | fully automated             | 1.81GB                           
+| v2      | small | requires host machine build | 740.06MB 
+
+The results were very similar, once again, to the chat server ones, were v1 and v2 have similar/identical sizes while v1-large is a completely different.
+
+### 3. Docker history
+
+Image Analysis and Monitoring
+
+After building the different versions (v1, v1-large, and v2) for both applications, the docker history command was used to inspect the layers of each image and identify how the build strategy affects their size and composition.
+
+The command `docker history {imageName}:{imageVerion} was ran, as it can be seen in the following example
+
+![Docker history](img/dockerHistoryServerV1.png)
+
+The docker history command displays the layer-by-layer history of a Docker image, showing how it was built and how much space each instruction adds. This can be very helpful in order to reduce image sizes.
+
+### 4. Container monitoring
+
+Firs there's the need of setting a container running:
+
+- `docker run -d -p 8080:8080 tut-rest:{imageVersion}`
+  - `-d` - run in detached mode.
+  - `-p host_port:container_port` - port mapping.
+
+Then in order to analyze resource usage during runtime, the command `docker stats` was executed:
+
+![Docker stats CMD](img/dockerStatsCMD.png)
+
+These stats can also be seen directly in docker desktop in a more user friendly way:
+
+![Docker stats docker desktop](img/dockerStats.png)
+
+### 5. Tag and Publish
+
+#### 5.1 Tag
+
+In order to correctly tags the images in order to publish them, the following commands were used:
+
+- `docker tag chat-server:v1 1211711/chat-server:v1`
+- `docker tag chat-server:v1-large 1211711/chat-server:v1-large`
+- `docker tag chat-server:v2 1211711/chat-server:v2`
+
+- `docker tag tut-rest:v1 1211711/tut-rest:v1`
+- `docker tag tut-rest:v1-large 1211711tut-rest:v1-large`
+- `docker tag tut-rest:v2 1211711/tut-rest:v2`
+
+#### 5.2 Publish
+
+Publishing images to Docker Hub makes them easy to share, deploy, and reuse across different systems. 
+It provides a central repository for consistent, versioned images. This increases team collaboration and helps automated deployments and reproducible environments without needing to rebuild locally.
+
+In order to publish the images to dockerhub, the following command were used:
+
+- `docker push 1211711/chat-server:v1`
+- `docker push 1211711/chat-server:v1-large`
+- `docker push 1211711/chat-server:v2`
+
+- `docker push 1211711/tut-rest:v1`
+- `docker push 1211711/tut-rest:v1-large`
+- `docker push 1211711/tut-rest:v2`
+
+![Docker tag and push](img/dockerHubPushServerCMD.png)
+
+With this, the images were correctly published to docker hub, as it can be seen:
+
+![Docker hub chat-server](img/dockerHubPushServer.png)
+
+![Docker hub tut-rest](img/dockerHubPushRest.png)
+
+Now we can execute `docker pull` in order to pull the relevant images from the docker hub itself, for example:
+
+![Docker pull](img/dockerHubPull.png)
+
+With this docker retrieves a specific image and all its layers, storing them locally so that we can create containers using it.
+
+---
+
+## Developers
+
+| Name       |  Number | Evaluation |
+| ---------- | :-----: | :--------: |
+| João Sousa | 1210631 |    100%    |
+| João Brito | 1211711 |    100%    |
