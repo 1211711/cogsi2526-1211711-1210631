@@ -11,8 +11,8 @@ Although the applications are quite different, the methods used to containerize 
 
 ### 1.1 Image v1 - Multi-stage
 
-This image builds the application entirely inside Docker. It Clones the repository, builds the application and runs it, all inside the container.
-It's fully automated which means no manual steps required outside Docker.
+This image **builds the application** entirely **inside _Docker_**. It Clones the repository, builds the application and runs it, all inside the container.
+It's **fully automated** which means no manual steps required outside _Docker_.
 
 ```dockerfile
 FROM openjdk:17.0.1-jdk-slim AS builder
@@ -55,9 +55,9 @@ ENTRYPOINT ["java", "-cp", "app.jar", "basic_demo.ChatServerApp", "59001"]
    10. `EXPOSE 59001` - declares the port the app listens to.
    11. `ENTRYPOINT` - starts the Java application with the specified main class.
 
-Pros: Ensures reproducible builds; final image is small since build tools are not included.
+Pros: Ensures **reproducible builds**; final **image is small** since build tools are not included.
 
-Cons: Build might take longer because everything (Git clone + Gradle build) runs inside the container
+Cons: **Build** might **take longer** because everything (Git clone + Gradle build) runs inside the container
 
 ### 1.2 Image v1-large - Single-stage build
 
@@ -85,7 +85,7 @@ EXPOSE 59001
 ENTRYPOINT ["java", "-cp", "app.jar", "basic_demo.ChatServerApp", "59001"]
 ```
 
-This image is a lot larger than the multistage one because it uses a single-stage build that includes the entire cloned 
+This image is a lot larger than the multistage one because it uses a **single-stage build** that includes the entire cloned 
 repository, gradle build tools, and all build files in the final image. 
 V1 is a multi-stage build that only copies the final JAR into a clean runtime image, leaving all build dependencies behind.
 
@@ -93,7 +93,7 @@ V1 is a multi-stage build that only copies the final JAR into a clean runtime im
 
 This image uses a prebuilt JAR copied from the host into the container. 
 
-The application must be built manually, `./gradlew build`, on the host beforehand, and Docker only packages and runs the artifact. 
+The application must be **built manually**, `./gradlew build`, on the host beforehand, and Docker only packages and runs the artifact. 
 It is not fully automated since a host build is required.
 
 ```dockerfile
@@ -126,18 +126,18 @@ In order to build each image there was the need to run the following command:
     - Image version examples: v1, v1-large, v2.
   - `.` → specifies the build context (current directory).
 
-Also in order to run the container after building the image the docker run command was used:
+Also in order to run the container after building the image the _docker_ run command was used:
 - `docker run -d -p 59001:59001 chat-server:{imageVersion}`
   - `-d` - run in detached mode.
   - `-p host_port:container_port` - port mapping.
 
 ![Chat Server running](img/chatServerRunning.png)
 
-| Version | Size | Automation                  | Size                                                                                       |
-|---------|------|-----------------------------|--------------------------------------------------------------------------------------------|
-| v1      | small | fully automated             | 636.62MB                                    
-| v1-large| large | fully automated             | 1.12GB                           
-| v2      | small | requires host machine build | 636.59MB 
+| Version  | Size  | Automation                  | Size     |
+|----------|-------|-----------------------------|----------|
+| v1       | small | fully automated             | 636.62MB |
+| v1-large | large | fully automated             | 1.12GB   |
+| v2       | small | requires host machine build | 636.59MB |
 
 As it can be seen that v1 and v2 are similar in size because both include only the runtime and the final application JAR, 
 with build tools and source code discarded or never included. 
@@ -236,7 +236,7 @@ In order to build each image there was the need to run the following commands:
     - Image version examples: v1, v1-large, v2.
   - `.` → specifies the build context (current directory).
 
-Also in order to run the container after building the image the docker run command was used:
+Also in order to run the container after building the image the _docker_ run command was used:
 - `docker run -d -p 8080:8080 tut-rest:{imageVersion}`
   - `-d` - run in detached mode.
   - `-p host_port:container_port` - port mapping.
@@ -247,19 +247,21 @@ Also in order to run the container after building the image the docker run comma
 | v1-large| large | fully automated             | 1.81GB                           
 | v2      | small | requires host machine build | 740.06MB 
 
+![All images running](img/all_imagesRunning.png)
+
 The results were very similar, once again, to the chat server ones, were v1 and v2 have similar/identical sizes while v1-large is a completely different.
 
 ### 3. Docker history
 
 Image Analysis and Monitoring
 
-After building the different versions (v1, v1-large, and v2) for both applications, the docker history command was used to inspect the layers of each image and identify how the build strategy affects their size and composition.
+After building the different versions (v1, v1-large, and v2) for both applications, the _docker_ history command was used to inspect the layers of each image and identify how the build strategy affects their size and composition.
 
-The command `docker history {imageName}:{imageVerion} was ran, as it can be seen in the following example
+The command `docker history {imageName}:{imageVerion}` was ran, as it can be seen in the following example
 
 ![Docker history](img/dockerHistoryServerV1.png)
 
-The docker history command displays the layer-by-layer history of a Docker image, showing how it was built and how much space each instruction adds. This can be very helpful in order to reduce image sizes.
+The docker history command displays the layer-by-layer **history of a _Docker_ image**, showing how it was built and how much space each instruction adds. This can be very helpful in order to reduce image sizes.
 
 ### 4. Container monitoring
 
@@ -273,7 +275,7 @@ Then in order to analyze resource usage during runtime, the command `docker stat
 
 ![Docker stats CMD](img/dockerStatsCMD.png)
 
-These stats can also be seen directly in docker desktop in a more user friendly way:
+These stats can also be seen directly in _docker_ desktop in a more user friendly way:
 
 ![Docker stats docker desktop](img/dockerStats.png)
 
@@ -293,10 +295,10 @@ In order to correctly tags the images in order to publish them, the following co
 
 #### 5.2 Publish
 
-Publishing images to Docker Hub makes them easy to share, deploy, and reuse across different systems. 
-It provides a central repository for consistent, versioned images. This increases team collaboration and helps automated deployments and reproducible environments without needing to rebuild locally.
+Publishing images to _Docker Hub_ makes them easy to share, deploy, and reuse across different systems. 
+It provides a central repository for consistent, versioned images. This **increases team collaboration** and **helps automated deployments** and reproducible environments without needing to rebuild locally.
 
-In order to publish the images to dockerhub, the following command were used:
+In order to publish the images to _docker hub_, the following command were used:
 
 - `docker push 1211711/chat-server:v1`
 - `docker push 1211711/chat-server:v1-large`
@@ -308,17 +310,17 @@ In order to publish the images to dockerhub, the following command were used:
 
 ![Docker tag and push](img/dockerHubPushServerCMD.png)
 
-With this, the images were correctly published to docker hub, as it can be seen:
+With this, the images were correctly published to _docker hub_, as it can be seen:
 
 ![Docker hub chat-server](img/dockerHubPushServer.png)
 
 ![Docker hub tut-rest](img/dockerHubPushRest.png)
 
-Now we can execute `docker pull` in order to pull the relevant images from the docker hub itself, for example:
+Now we can execute `docker pull` in order to pull the relevant images from the _docker hub_ itself, for example:
 
 ![Docker pull](img/dockerHubPull.png)
 
-With this docker retrieves a specific image and all its layers, storing them locally so that we can create containers using it.
+With this _docker_ retrieves a specific image and all its layers, storing them locally so that we can create containers using it.
 
 ---
 
