@@ -1,7 +1,6 @@
 services:
   web:
-    build: .
-#    image: joaosousa00/tut-rest:part2
+    image: joaosousa00/tut-rest:part2
     ports:
       - "8000:5000"
     env_file:
