@@ -4,6 +4,7 @@ services:
 #    image: "1211711/tut-rest:v1"
     ports:
       - "8000:5000"
+    env_file: "web.env"
     networks:
       app_network:
     depends_on:
