@@ -1,0 +1,7 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:5000"
+  db:
+    image: "buildo/h2database"
