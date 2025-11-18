@@ -290,7 +290,7 @@ In order to correctly tags the images in order to publish them, the following co
 - `docker tag chat-server:v2 1211711/chat-server:v2`
 
 - `docker tag tut-rest:v1 1211711/tut-rest:v1`
-- `docker tag tut-rest:v1-large 1211711tut-rest:v1-large`
+- `docker tag tut-rest:v1-large 1211711/tut-rest:v1-large`
 - `docker tag tut-rest:v2 1211711/tut-rest:v2`
 
 #### 5.2 Publish
