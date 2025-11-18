@@ -1,7 +1,19 @@
 services:
   web:
     build: .
+#    image: "1211711/tut-rest:v1"
     ports:
       - "8000:5000"
+    networks:
+      app_network:
+    depends_on:
+      - db
   db:
     image: "buildo/h2database"
+    ports:
+      - "8099"
+    networks:
+      app_network:
+
+networks:
+  app_network:

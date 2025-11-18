@@ -10,7 +10,7 @@ RUN git clone https://github.com/1211711/cogsi2526-1211711-1210631.git /app
 
 WORKDIR /app
 RUN git fetch
-RUN git checkout bugfix/no-issue/fix_tut_rest_application_properties
+RUN git checkout feature/issue-24/containerized_environments
 
 WORKDIR /app/CA2/Part2/gradle-migration
 RUN ./gradlew build -x test --no-daemon
