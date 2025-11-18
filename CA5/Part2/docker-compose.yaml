@@ -1,7 +1,7 @@
 services:
   web:
-#    build: .
-    image: joaosousa00/tut-rest:v0.1
+    build: .
+#    image: joaosousa00/tut-rest:v0.1
     ports:
       - "8000:5000"
     env_file:
@@ -31,6 +31,15 @@ services:
       - db_data:/opt/h2-data
     networks:
       app_network:
+
+  backup:
+    image: alpine
+    command: [ "sh", "-c", "cp -r /opt/h2-data /backup" ]
+    volumes:
+      - db_data:/opt/h2-data:ro   # Read-only access to the same named volume
+      - ./backup:/backup          # Bind mount to host directory
+    networks:
+      - app_network
 
 volumes:
   db_data:
