@@ -1,0 +1,47 @@
+services:
+  web:
+    image: joaosousa00/tut-rest:part2
+    ports:
+      - "8000:5000"
+    env_file:
+      - web.env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      app_network:
+
+  db:
+    image: joaosousa00/h2db
+    ports:
+      - "81:81"
+      - "1521:1521"
+    hostname: db
+    container_name: db
+    environment:
+      - H2_OPTIONS=-ifNotExists -web -webAllowOthers -tcp -tcpAllowOthers
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:81" ]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+    volumes:
+      - db_data:/opt/h2-data
+    networks:
+      app_network:
+
+  backup:
+    image: alpine
+    command: [ "sh", "-c", "cp -r /opt/h2-data /backup" ]
+    volumes:
+      - db_data:/opt/h2-data:ro
+      - ./backup:/backup
+    networks:
+      - app_network
+
+volumes:
+  db_data:
+
+networks:
+  app_network:
