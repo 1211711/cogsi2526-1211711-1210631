@@ -53,7 +53,7 @@ The web service hosts the Spring Boot Tut REST application, exposing its API to 
     1. A new image using the dockerfile created in the previous assignment was tagged, created and pushed to dockher hub
 2. Ports: `5000` internal mapped to `8000` on the host
 
-## 3. Database Healthcheck and Web Depends On
+## 3. Database Healthcheck and Web Dependency
 
 To avoid startup errors where the web application connects to an unavailable database, a health check was added to the db container. 
 Besides this a condition on the web container was also addressed, making sure web only startups when the db is healthy.
