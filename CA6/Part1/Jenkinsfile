@@ -8,7 +8,7 @@ pipeline {
 
      environment {
         DIR = 'CA2/Part2/gradle-migration'
-        GRADLEW = './${DIR}/gradlew -p ${DIR}'
+        GRADLEW = './' + ${DIR} + '/gradlew -p '+ DIR
      }
 
      stages {
