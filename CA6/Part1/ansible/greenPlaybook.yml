@@ -1,0 +1,92 @@
+---
+- name: Web VM Provision
+  hosts: green
+  become: true
+  tasks:
+    - name: Check if repo directory exists
+      stat:
+        path: /opt/cogsi2526-1211711-1210631
+      register: repo_dir
+
+    - name: Clone the repository
+      git:
+        repo: 'https://github.com/1211711/cogsi2526-1211711-1210631.git'
+        dest: /opt/cogsi2526-1211711-1210631
+      when: not repo_dir.stat.exists
+
+    - name: Update H2 database URL in application.yaml
+      lineinfile:
+        path: /opt/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration/src/main/resources/application.properties
+        regexp: 'jdbc:h2:tcp://192.168.33.11:9090/database'
+        line: 'jdbc:h2:tcp://localhost:9092/h2db'
+
+    - name: Download H2 Database
+      get_url:
+        url: https://repo1.maven.org/maven2/com/h2database/h2/2.4.240/h2-2.4.240.jar
+        dest: /opt/h2-2.4.240.jar
+
+    - name: Create shared directory for H2 database
+      file:
+        path: /vagrant/h2/h2db
+        state: directory
+        mode: '0770'
+
+    - name: Create H2 server systemd service file
+      copy:
+        dest: /etc/systemd/system/h2db.service
+        content: |
+          [Unit]
+          Description=H2 Database Server
+          After=network.target
+
+          [Service]
+          ExecStart=/usr/bin/java -cp "/opt/h2-2.4.240.jar" org.h2.tools.Server -tcp -tcpAllowOthers -tcpPort 9092 -baseDir /vagrant/h2db -ifNotExists
+          User=root
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Start H2 Database service
+      systemd:
+        name: h2db
+        state: started
+        enabled: true
+
+    - name: Port HealthCheck
+      wait_for:
+        host: "localhost"
+        port: 9092
+        state: started
+        timeout: 5
+
+    - name: Wait for H2 database to be ready
+      wait_for:
+        host: localhost
+        port: 9092
+        delay: 1
+        timeout: 3
+        state: started
+      retries: 5
+      delay: 3
+
+    - name: Build the application
+      command: "./gradlew bootRun"
+      args:
+        chdir: /opt/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration
+      async: 600
+      poll: 0
+
+    - name: Healthcheck
+      uri:
+        url: http://localhost:8080/employees
+        method: GET
+        return_content: true
+      register: http_check
+      until: http_check.status == 200
+      retries: 5
+      delay: 5
+      failed_when:
+        - http_check.status != 200
+        - "Unhealthy application response"
+      ignore_errors: true

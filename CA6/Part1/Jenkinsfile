@@ -1,0 +1,17 @@
+pipeline {
+     agent any
+
+     options {
+          skipStagesAfterUnstable()
+          skipDefaultCheckout(true)
+     }
+
+     stages {
+        stage('Repository Checkout') {
+               steps {
+                    echo 'Repository Checkout'
+                    checkout scm
+               }
+          }
+     }
+}
