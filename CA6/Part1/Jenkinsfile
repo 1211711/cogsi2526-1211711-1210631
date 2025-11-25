@@ -7,7 +7,7 @@ pipeline {
      }
 
      environment {
-        DIR = './CA2/Part2/gradle-migration'
+        GRADLEW = './CA2/Part2/gradle-migration/gradlew -p CA2/Part2/gradle-migration'
      }
 
      stages {
@@ -25,9 +25,9 @@ pipeline {
 
                     script {
                         if (isUnix()) {
-                              sh '${DIR}/gradlew clean build'
+                              sh '${GRADLEW} clean build'
                         } else {
-                              bat '${DIR}/gradlew clean build'
+                              bat '${GRADLEW} clean build'
                         }
                     }
 
@@ -41,9 +41,9 @@ pipeline {
 
                     script {
                          if (isUnix()) {
-                              sh '${DIR}/gradlew test'
+                              sh '${GRADLEW} test'
                     } else {
-                              bat '${DIR}/gradlew test'
+                              bat '${GRADLEW} test'
                          }
                     }
                }
