@@ -11,7 +11,7 @@ pipeline {
                steps {
                     echo 'Repository Checkout'
                     checkout scm
-                    cd "CA2/Part2/gradle-migration"
+                    dir('CA2/Part2/gradle-migration')
                }
         }
 
