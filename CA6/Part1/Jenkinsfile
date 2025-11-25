@@ -75,7 +75,7 @@ pipeline {
 
                     script {
                         if (isUnix()) {
-                              sh 'sudo apt update && sudo apt install vagrant'
+                              sh 'apt update && apt install vagrant'
                         } else {
                               bat 'brew install --cask vagrant'
                          }
