@@ -7,7 +7,8 @@ pipeline {
      }
 
      environment {
-        GRADLEW = './CA2/Part2/gradle-migration/gradlew -p CA2/Part2/gradle-migration'
+        DIR = 'CA2/Part2/gradle-migration'
+        GRADLEW = './${DIR}/gradlew -p ${DIR}'
      }
 
      stages {
@@ -31,7 +32,7 @@ pipeline {
                         }
                     }
 
-                    archiveArtifacts artifacts: 'build/libs/*.jar'
+                    archiveArtifacts artifacts: '${DIR}/build/libs/*.jar'
                }
         }
 
@@ -48,6 +49,16 @@ pipeline {
                     }
                }
         }
+
+        stage('Unit Tests HTML Report Publish') {
+               steps {
+                    echo 'Publishing Unit Tests HTML Report'
+
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '${DIR}/build/reports/tests/test', reportFiles: 'index.html', reportName: 'Unit Tests HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+               }
+        }
+
+
 
      }
 }
