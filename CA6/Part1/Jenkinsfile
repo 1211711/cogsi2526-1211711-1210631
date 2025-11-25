@@ -6,12 +6,15 @@ pipeline {
           skipDefaultCheckout(true)
      }
 
+     environment {
+        DIR = './CA2/Part2/gradle-migration'
+     }
+
      stages {
         stage('Repository Checkout') {
                steps {
                     echo 'Repository Checkout'
                     checkout scm
-                    dir('CA2/Part2/gradle-migration')
                }
         }
 
@@ -22,9 +25,9 @@ pipeline {
 
                     script {
                         if (isUnix()) {
-                              sh './gradlew clean build'
+                              sh '${DIR}/gradlew clean build'
                         } else {
-                              bat './gradlew clean build'
+                              bat '${DIR}/gradlew clean build'
                         }
                     }
 
@@ -38,9 +41,9 @@ pipeline {
 
                     script {
                          if (isUnix()) {
-                              sh './gradlew test'
+                              sh '${DIR}/gradlew test'
                     } else {
-                              bat './gradlew test'
+                              bat '${DIR}/gradlew test'
                          }
                     }
                }
