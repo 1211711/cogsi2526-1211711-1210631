@@ -11,7 +11,40 @@ pipeline {
                steps {
                     echo 'Repository Checkout'
                     checkout scm
+                    cd "CA2/Part2/gradle-migration"
                }
-          }
+        }
+
+        stage('Build Step') {
+               steps {
+                    echo 'Generating deployment file'
+                    echo "Running Build ${env.BUILD_ID}"
+
+                    script {
+                        if (isUnix()) {
+                              sh './gradlew clean build'
+                        } else {
+                              bat './gradlew clean build'
+                        }
+                    }
+
+                    archiveArtifacts artifacts: 'build/libs/*.jar'
+               }
+        }
+
+        stage('Unit Tests') {
+               steps {
+                    echo 'Unit Tests'
+
+                    script {
+                         if (isUnix()) {
+                              sh './gradlew test'
+                    } else {
+                              bat './gradlew test'
+                         }
+                    }
+               }
+        }
+
      }
 }
