@@ -32,7 +32,7 @@ pipeline {
                         }
                     }
 
-                    archiveArtifacts artifacts: '${DIR}/build/libs/*.jar'
+                    archiveArtifacts artifacts: 'CA2/Part2/gradle-migration/build/libs/*.jar'
                }
         }
 
@@ -54,7 +54,7 @@ pipeline {
                steps {
                     echo 'Publishing Unit Tests HTML Report'
 
-                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: '${DIR}/build/reports/tests/test', reportFiles: 'index.html', reportName: 'Unit Tests HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'CA2/Part2/gradle-migration/build/reports/tests/test', reportFiles: 'index.html', reportName: 'Unit Tests HTML Report', reportTitles: '', useWrapperFileDirectly: true])
                }
         }
 
