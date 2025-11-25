@@ -41,11 +41,11 @@ pipeline {
                     echo 'Unit Tests'
 
                     script {
-                         if (isUnix()) {
+                        if (isUnix()) {
                               sh '${GRADLEW} test'
-                    } else {
+                        } else {
                               bat '${GRADLEW} test'
-                         }
+                        }
                     }
                }
         }
@@ -69,7 +69,19 @@ pipeline {
                }
         }
 
+        stage('Install Vagrant') {
+               steps {
+                    echo 'Installing vagrant..'
 
+                    script {
+                        if (isUnix()) {
+                              sh 'sudo apt update && sudo apt install vagrant'
+                        } else {
+                              bat 'brew install --cask vagrant'
+                         }
+                    }
+               }
+        }
 
         stage('Deploy application to Blue VM') {
                steps {
