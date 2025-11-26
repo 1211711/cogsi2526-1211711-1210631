@@ -1,5 +1,5 @@
 ---
-- name: Web VM Provision
+- name: Green VM Provision
   hosts: green
   become: true
   tasks:

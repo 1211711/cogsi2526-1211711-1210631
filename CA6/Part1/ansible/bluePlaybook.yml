@@ -1,5 +1,5 @@
 ---
-- name: Web VM Provision
+- name: Blue VM Provision
   hosts: blue
   become: true
   tasks:
@@ -85,7 +85,7 @@
       register: http_check
       until: http_check.status == 200
       retries: 5
-      delay: 5
+      delay: 10
       failed_when:
         - http_check.status != 200
         - "Unhealthy application response"
