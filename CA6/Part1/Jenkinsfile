@@ -69,20 +69,6 @@ pipeline {
                }
         }
 
-        stage('Install Vagrant') {
-               steps {
-                    echo 'Installing vagrant..'
-
-                    script {
-                        if (isUnix()) {
-                              sh 'apt update && apt install vagrant'
-                        } else {
-                              bat 'brew install --cask vagrant'
-                         }
-                    }
-               }
-        }
-
         stage('Deploy application to Blue VM') {
                steps {
                     echo 'Deploy to Production in Blue VM'
