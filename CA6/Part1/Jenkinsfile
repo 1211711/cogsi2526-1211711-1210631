@@ -97,8 +97,7 @@ pipeline {
                                 echo 'Web application up and running on Blue VM!'
                                 env.BLUE = "200"
                             } else {
-                                echo "Error on Blue VM. Status: ${result}"
-                                exit 1
+                                error("Error on Blue VM. Status: ${result}")
                             }
                         } else {
                             bat(script: "curl -s -o -w $url", returnStdout: true)
@@ -147,8 +146,7 @@ pipeline {
                             echo 'Web application up and running on Green VM!'
                             env.BLUE = "200"
                         } else {
-                            echo "Error on Green VM. Status: ${result}"
-                            exit 1
+                            error("Error on Green VM. Status: ${result}")
                         }
                     }
                 }
