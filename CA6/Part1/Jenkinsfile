@@ -76,6 +76,7 @@ pipeline {
                     dir('CA6/Part1') {
                         script {
                             if (isUnix()) {
+                                  sh 'vagrant destroy blue -f'
                                   sh 'vagrant up blue --provision'
                             } else {
                                   bat 'vagrant up blue --provision'
