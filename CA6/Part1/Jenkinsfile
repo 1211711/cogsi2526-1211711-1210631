@@ -96,7 +96,7 @@ pipeline {
                 sh "cp CA2/Part2/gradle-migration/build/libs/tut-rest-0.0.1-SNAPSHOT.jar CA2/Part2/gradle-migration/build/libs/stable-v${currentBuild.displayName}.jar"
             }
 
-            archiveArtifacts artifacts: "CA2/Part2/gradle-migration/build/libs/tut-rest-stable-${currentBuild.displayName}.jar"
+            archiveArtifacts artifacts: "CA2/Part2/gradle-migration/build/libs/stable-v${currentBuild.displayName}.jar"
             echo 'Repository commit tag updated with the build result.'
        }
     }
