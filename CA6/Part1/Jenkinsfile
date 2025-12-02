@@ -76,9 +76,9 @@ pipeline {
                     dir('CA6/Part1') {
                         script {
                             if (isUnix()) {
-                                  //sh 'vagrant up blue --provision'
+                                  sh 'vagrant up blue --provision'
                             } else {
-                                  //bat 'vagrant up blue --provision'
+                                  bat 'vagrant up blue --provision'
                             }
                         }
                     }
