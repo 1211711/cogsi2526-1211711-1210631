@@ -98,6 +98,7 @@ pipeline {
                                 env.BLUE = "200"
                             } else {
                                 echo "Error on Blue VM. Status: ${result}"
+                                exit 1
                             }
                         } else {
                             bat(script: "curl -s -o -w $url", returnStdout: true)
