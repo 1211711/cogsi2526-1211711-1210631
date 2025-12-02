@@ -131,7 +131,7 @@ pipeline {
             echo "Build failed!"
             script {
                 if (env.BLUE != "200") {
-                    sh "vagrant halt green"
+                    //sh "vagrant halt green"
                     sh "vagrant up green --provision"
                 }
 
