@@ -76,9 +76,9 @@ pipeline {
                     dir('CA6/Part1') {
                         script {
                             if (isUnix()) {
-                                  sh 'vagrant up blue --provision'
+                                  //sh 'vagrant up blue --provision'
                             } else {
-                                  bat 'vagrant up blue --provision'
+                                  //bat 'vagrant up blue --provision'
                             }
                         }
                     }
@@ -91,12 +91,12 @@ pipeline {
        success {
             echo 'Build was successful!'
             script {
-                def myTag = "stable-v${buildNumber}"
+                def myTag = "stable-v${currentBuild.displayName}"
 
-                sh "cp CA2/Part2/gradle-migration/build/libs/tut-rest-0.0.1-SNAPSHOT.jar CA2/Part2/gradle-migration/uild/libs/stable-v${buildNumber}.jar"
+                sh "cp CA2/Part2/gradle-migration/build/libs/tut-rest-0.0.1-SNAPSHOT.jar CA2/Part2/gradle-migration/uild/libs/stable-v${currentBuild.displayName}.jar"
             }
 
-            archiveArtifacts artifacts: "CA2/Part2/gradle-migration/build/libs/tut-rest-stable-${buildNumber}.jar"
+            archiveArtifacts artifacts: "CA2/Part2/gradle-migration/build/libs/tut-rest-stable-${currentBuild.displayName}.jar"
             echo 'Repository commit tag updated with the build result.'
        }
     }
