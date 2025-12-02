@@ -111,8 +111,8 @@ pipeline {
                 steps {
                     script {
                         if (env.BLUE != "200") {
-                            //sh "vagrant halt green"
-                            sh "vagrant up green --provision"
+                            //sh 'vagrant halt green'
+                            sh 'vagrant up green --provision'
                         }
 
                         result = sh(script: 'curl -m 5 -s -o /dev/null -w \"%{http_code}\" http://localhost:8091/employees', returnStdout: true)
