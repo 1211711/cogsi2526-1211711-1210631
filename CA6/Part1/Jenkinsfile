@@ -85,6 +85,26 @@ pipeline {
                }
         }
 
+        stage('Deployment Verification') {
+            steps {
+                script {
+                    final String url = "http://localhost:8090/employees"
+
+                    if (isUnix()) {
+                        result = sh(script: 'curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8090/employees', returnStdout: true)
+                        if (result == '200' || result == '302') {
+                            echo 'Web application up and running!'
+                        } else {
+                            echo "Error. Status: ${result}"
+                        }
+                    } else {
+                        bat(script: "curl -s -o -w $url", returnStdout: true)
+                        echo 'Web application up and running!'
+                    }
+                }
+            }
+        }
+
      }
 
     post {
