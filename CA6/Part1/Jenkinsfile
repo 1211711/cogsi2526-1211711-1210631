@@ -90,16 +90,14 @@ pipeline {
     post {
        success {
             echo 'Build was successful!'
-            doTagArtifact(currentBuild.displayName)
+            script {
+                def myTag = "stable-v${buildNumber}"
+
+                sh "cp CA2/Part2/gradle-migration/build/libs/tut-rest-0.0.1-SNAPSHOT.jar CA2/Part2/gradle-migration/uild/libs/stable-v${buildNumber}.jar"
+            }
+
+            archiveArtifacts artifacts: "CA2/Part2/gradle-migration/build/libs/tut-rest-stable-${buildNumber}.jar"
             echo 'Repository commit tag updated with the build result.'
        }
     }
-}
-
-def doTagArtifact(buildNumber, buildStatus) {
-    def myTag = "stable-v${buildNumber}"
-
-    sh "cp CA2/Part2/gradle-migration/build/libs/tut-rest-0.0.1-SNAPSHOT.jar CA2/Part2/gradle-migration/uild/libs/stable-v${buildNumber}.jar"
-
-    archiveArtifacts artifacts: "CA2/Part2/gradle-migration/build/libs/tut-rest-stable-${buildNumber}.jar"
 }
