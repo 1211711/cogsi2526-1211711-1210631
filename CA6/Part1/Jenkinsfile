@@ -92,7 +92,7 @@ pipeline {
                         final String url = "http://localhost:8090/employees"
 
                         if (isUnix()) {
-                            result = sh(script: 'curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8090/employees', returnStdout: true)
+                            result = sh(script: 'curl -m 5 -s -o /dev/null -w \"%{http_code}\" http://localhost:8090/employees', returnStdout: true)
                             if (result == '200' || result == '302') {
                                 echo 'Web application up and running on Blue VM!'
                                 env.BLUE = "200"
@@ -135,7 +135,7 @@ pipeline {
                     sh "vagrant up green --provision"
                 }
 
-                result = sh(script: 'curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8091/employees', returnStdout: true)
+                result = sh(script: 'curl -m 5 -s -o /dev/null -w \"%{http_code}\" http://localhost:8091/employees', returnStdout: true)
                 if (result == '200' || result == '302') {
                     echo 'Web application up and running on Green VM!'
                     env.BLUE = "200"
