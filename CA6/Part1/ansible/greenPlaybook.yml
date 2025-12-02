@@ -20,6 +20,12 @@
         regexp: 'jdbc:h2:tcp://192.168.33.11:9090/database'
         line: 'jdbc:h2:tcp://localhost:9092/h2db'
 
+    - name: Download last stable version
+      get_url:
+        url: http://10.0.2.2:8080/job/cogsi2526-1211711-1210631/lastStableBuild/artifact/CA2/Part2/gradle-migration/build/libs/tut-rest-0.0.1-SNAPSHOT.jar
+        dest: /opt/tut-rest-0.0.1-SNAPSHOT.jar
+      ignore_errors: true
+
     - name: Download H2 Database
       get_url:
         url: https://repo1.maven.org/maven2/com/h2database/h2/2.4.240/h2-2.4.240.jar
@@ -71,9 +77,23 @@
       delay: 3
 
     - name: Build the application
+      command: "./gradlew build"
+      args:
+        chdir: /opt/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration
+      async: 600
+      poll: 0
+
+    - name: Build the application 2
       command: "./gradlew bootRun"
       args:
         chdir: /opt/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration
+      async: 600
+      poll: 0
+
+    - name: Run the application
+      command: "java -jar tut-rest-0.0.1-SNAPSHOT.jar"
+      args:
+        chdir: /opt/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration/build/libs
       async: 600
       poll: 0
 

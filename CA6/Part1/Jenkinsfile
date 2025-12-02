@@ -9,6 +9,7 @@ pipeline {
      environment {
         DIR = 'CA2/Part2/gradle-migration'
         GRADLEW = './CA2/Part2/gradle-migration/gradlew -p CA2/Part2/gradle-migration'
+        BLUE = "400"
      }
 
      stages {
@@ -76,8 +77,7 @@ pipeline {
                     dir('CA6/Part1') {
                         script {
                             if (isUnix()) {
-                                  sh 'vagrant destroy blue -f'
-                                  sh 'vagrant up blue --provision'
+                                  //sh 'vagrant up blue --provision'
                             } else {
                                   bat 'vagrant up blue --provision'
                             }
@@ -87,23 +87,25 @@ pipeline {
         }
 
         stage('Deployment Verification') {
-            steps {
-                script {
-                    final String url = "http://localhost:8090/employees"
+                steps {
+                    script {
+                        final String url = "http://localhost:8090/employees"
 
-                    if (isUnix()) {
-                        result = sh(script: 'curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8090/employees', returnStdout: true)
-                        if (result == '200' || result == '302') {
-                            echo 'Web application up and running!'
+                        if (isUnix()) {
+                            result = sh(script: 'curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8090/employees', returnStdout: true)
+                            if (result == '200' || result == '302') {
+                                echo 'Web application up and running on Blue VM!'
+                                env.BLUE = "200"
+                            } else {
+                                echo "Error on Blue VM. Status: ${result}"
+                                exit 1
+                            }
                         } else {
-                            echo "Error. Status: ${result}"
+                            bat(script: "curl -s -o -w $url", returnStdout: true)
+                            echo 'Web application up and running!'
                         }
-                    } else {
-                        bat(script: "curl -s -o -w $url", returnStdout: true)
-                        echo 'Web application up and running!'
                     }
                 }
-            }
         }
 
      }
@@ -123,6 +125,28 @@ pipeline {
 
        always {
             echo "Build result: ${currentBuild.currentResult}"
+       }
+
+       failure {
+            echo "Build failed!"
+
+            if (env.BLUE != "200") {
+                script {
+                    sh "vagrant halt green"
+                    sh "vagrant up green --provision"
+                }
+            }
+
+            final String url = "http://localhost:8091/employees"
+
+            result = sh(script: 'curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8091/employees', returnStdout: true)
+            if (result == '200' || result == '302') {
+                echo 'Web application up and running on Green VM!'
+                env.BLUE = "200"
+            } else {
+                echo "Error on Green VM. Status: ${result}"
+                exit 1
+            }
        }
     }
 }
