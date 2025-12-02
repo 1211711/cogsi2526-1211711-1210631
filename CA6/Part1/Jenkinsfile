@@ -99,5 +99,9 @@ pipeline {
             archiveArtifacts artifacts: "CA2/Part2/gradle-migration/build/libs/stable-v${env.BUILD_NUMBER}.jar"
             echo 'Repository commit tag updated with the build result.'
        }
+
+       always {
+            echo "Build result: ${currentBuild.currentResult}"
+       }
     }
 }
