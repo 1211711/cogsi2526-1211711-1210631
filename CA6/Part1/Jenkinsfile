@@ -107,7 +107,7 @@ pipeline {
                 }
         }
 
-        stage('Rollback') {
+        /*stage('Rollback') {
                 steps {
                     script {
                         if (env.BLUE != "200") {
@@ -125,7 +125,7 @@ pipeline {
                         }
                     }
                 }
-        }
+        }*/
 
      }
 
@@ -148,21 +148,23 @@ pipeline {
 
        failure {
             echo "Build failed!"
-            /*script {
-                if (env.BLUE != "200") {
-                    //sh "vagrant halt green"
-                    sh "vagrant up green --provision"
-                }
+            dir('CA6/Part1') {
+                script {
+                    if (env.BLUE != "200") {
+                        //sh "vagrant halt green"
+                        sh "vagrant up green --provision"
+                    }
 
-                result = sh(script: 'curl -m 5 -s -o /dev/null -w \"%{http_code}\" http://localhost:8091/employees', returnStdout: true)
-                if (result == '200' || result == '302') {
-                    echo 'Web application up and running on Green VM!'
-                    env.BLUE = "200"
-                } else {
-                    echo "Error on Green VM. Status: ${result}"
-                    exit 1
+                    result = sh(script: 'curl -m 5 -s -o /dev/null -w \"%{http_code}\" http://localhost:8091/employees', returnStdout: true)
+                    if (result == '200' || result == '302') {
+                        echo 'Web application up and running on Green VM!'
+                        env.BLUE = "200"
+                    } else {
+                        echo "Error on Green VM. Status: ${result}"
+                        exit 1
+                    }
                 }
-            }*/
+            }
        }
     }
 }
