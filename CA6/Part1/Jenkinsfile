@@ -129,23 +129,20 @@ pipeline {
 
        failure {
             echo "Build failed!"
-
-            if (env.BLUE != "200") {
-                script {
+            script {
+                if (env.BLUE != "200") {
                     sh "vagrant halt green"
                     sh "vagrant up green --provision"
                 }
-            }
 
-            final String url = "http://localhost:8091/employees"
-
-            result = sh(script: 'curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8091/employees', returnStdout: true)
-            if (result == '200' || result == '302') {
-                echo 'Web application up and running on Green VM!'
-                env.BLUE = "200"
-            } else {
-                echo "Error on Green VM. Status: ${result}"
-                exit 1
+                result = sh(script: 'curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8091/employees', returnStdout: true)
+                if (result == '200' || result == '302') {
+                    echo 'Web application up and running on Green VM!'
+                    env.BLUE = "200"
+                } else {
+                    echo "Error on Green VM. Status: ${result}"
+                    exit 1
+                }
             }
        }
     }
