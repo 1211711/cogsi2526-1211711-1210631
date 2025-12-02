@@ -3,24 +3,7 @@
   hosts: green
   become: true
   tasks:
-    - name: Check if repo directory exists
-      stat:
-        path: /opt/cogsi2526-1211711-1210631
-      register: repo_dir
-
-    - name: Clone the repository
-      git:
-        repo: 'https://github.com/1211711/cogsi2526-1211711-1210631.git'
-        dest: /opt/cogsi2526-1211711-1210631
-      when: not repo_dir.stat.exists
-
-    - name: Update H2 database URL in application.yaml
-      lineinfile:
-        path: /opt/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration/src/main/resources/application.properties
-        regexp: 'jdbc:h2:tcp://192.168.33.11:9090/database'
-        line: 'jdbc:h2:tcp://localhost:9092/h2db'
-
-    - name: Download last stable version
+    - name: Download last stable artifact version
       get_url:
         url: http://10.0.2.2:8080/job/cogsi2526-1211711-1210631/lastStableBuild/artifact/CA2/Part2/gradle-migration/build/libs/tut-rest-0.0.1-SNAPSHOT.jar
         dest: /opt/tut-rest-0.0.1-SNAPSHOT.jar
@@ -76,24 +59,10 @@
       retries: 5
       delay: 3
 
-    - name: Build the application
-      command: "./gradlew build"
-      args:
-        chdir: /opt/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration
-      async: 600
-      poll: 0
-
-    - name: Build the application 2
-      command: "./gradlew bootRun"
-      args:
-        chdir: /opt/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration
-      async: 600
-      poll: 0
-
     - name: Run the application
       command: "java -jar tut-rest-0.0.1-SNAPSHOT.jar"
       args:
-        chdir: /opt/cogsi2526-1211711-1210631/CA2/Part2/gradle-migration/build/libs
+        chdir: /opt
       async: 600
       poll: 0
 
