@@ -1,4 +1,4 @@
-# CCOGSI CA6 – PART 1
+# COGSI CA6 – PART 1
 
 This document is part of the COGSI (Configuration and Systems Management) class from the Software Engineering master’s course at ISEP – Instituto Superior de Engenharia do Porto.
 
