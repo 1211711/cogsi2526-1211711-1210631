@@ -458,7 +458,7 @@ pipeline {
     1. Verifies if the application deployed on Blue VM is reachable and returns a valid HTTP code
     2. If the http code means success (200 or 302), sets the `BLUE` environment variable in order to be used later to ignore the rollback.
     3. If the http code means failure, it throws an error.
-    4. ![deployment verification](img/deploymentVerification.png)
+    4. ![deployment verification](Part1/img/deploymentVerification.png)
 10. `post`
     1. This represents all of the post execution actions.
         - `success` - when the pipeline succeeds.
@@ -467,23 +467,23 @@ pipeline {
     2. `success`
         1. Creates a copy of the built JAR named stable-v<buildnumber>.jar. This allows us to tag a stable version of the artifact. The build number of the pipeline was used as the version, preventing duplication and overrides.
         2. Archives the stable artifact. This is now accessible via the Jenkins _lastStableBuild_ artifact URL (which the Green playbook later downloads).
-        3. ![tag artifact](img/taggedArtifact.png)
+        3. ![tag artifact](Part1/img/taggedArtifact.png)
     4. `failure`
         1. Checks if the deployment verification was successfull using the `BLUE` variable.
         2. If the Blue deployment failed, proceeds with rollback.
             - Stops Green VM with `vagrant halt green` to ensure a clean restart.
             - Boots Green with `vagrant up green --provision`. The Green playbook downloads the archived stable artifact from Jenkins using the endpoint already mentioned previously.
-            - ![rollback](img/healthCheckBlueFailed.png)
+            - ![rollback](Part1/img/healthCheckBlueFailed.png)
             - Performs healthcheck on `http://localhost:8091/employees`. If Green returns a success code (200 or 302), it means that the rollback was successfull, otherwise the pipeline throws an error.
-            - ![green healthcheck](img/healthCheckGreen.png)
+            - ![green healthcheck](Part1/img/healthCheckGreen.png)
     3. `always`
         1. Prints the final build result no matter success/failure.
 
 Throughout the pipeline, multiple logs were added, in order to indicate the state of it's build in a continously and valuable way.
 
-![build result notification](img/buildResultNotification.png.png)
+![build result notification](Part1/img/buildResultNotification.png)
 
-![jenkins success](img/jenkinsSuccessful.png)
+![jenkins success](Part1/img/jenkinsSuccessful.png)
 
 ---
 
