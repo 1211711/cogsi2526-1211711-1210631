@@ -435,31 +435,31 @@ pipeline {
 }
 ```
 
-1. `options`
+1. **Options**
     1. `skipStagesAfterUnstable()` - if a stage sets the build result to UNSTABLE, subsequent stages will be skipped. Useful to avoid wasting resources after test failures.
     2. `skipDefaultCheckout(true)` — Prevents Jenkins from doing the implicit checkout scm at the start.
-2. `environment`
+2. **Environment**
     1. Contains environment varibles that are used during the stages of the pipeline
-3. Repository checkout
+3. **Repository checkout**
     1. Pulls the repository that triggered the pipeline (scm is the Jenkins SCM configured for the job)
-4. Build Step
+4. **Build Step**
     1. Runs Gradle build using the wrapper defined in *GRADLEW*. Uses platform detection: sh on Unix, bat on Windows.
     2. `archiveArtifacts` - Archives *.jar files found in the build output into Jenkins build artifacts for later retrieval. This is what makes the artifact available for the VMs to download.
-5. Unit tests
+5. **Unit tests**
     1. Runs unit tests separately using the existing gradle task for it.
-6. Unit Tests HTML Report Publish
+6. **Unit Tests HTML Report Publish**
     1. Publishes the generated HTML test report to Jenkins, as an artifact, using the HTML Publisher plugin.
-7. UI Acceptance Tests
+7. **UI Acceptance Tests**
     1. Pauses the pipeline and waits for a human approv (Yes). This is makes the pipeline more controllable and less prone to _missclicks.
-8. Deploy application to Blue VM
+8. **Deploy application to Blue VM**
     1. Boots the Blue VM via Vagrant from the repository folder CA6/Part1 and triggers the provisioning.
     2. The main logic in this section is inside the Blue VM ansible file itself.
-9. Deployment Verification
+9. **Deployment Verification**
     1. Verifies if the application deployed on Blue VM is reachable and returns a valid HTTP code
     2. If the http code means success (200 or 302), sets the `BLUE` environment variable in order to be used later to ignore the rollback.
     3. If the http code means failure, it throws an error.
     4. ![deployment verification](Part1/img/deploymentVerification.png)
-10. `post`
+10. **Post**
     1. This represents all of the post execution actions.
         - `success` - when the pipeline succeeds.
         - `failure` - when the pipeline fails.
