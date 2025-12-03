@@ -3,12 +3,6 @@
   hosts: all
   become: true
   tasks:
-    - name: Install git
-      apt:
-        name: git
-        state: present
-        update_cache: yes
-
     - name: Install java
       apt:
         name: openjdk-17-jdk
