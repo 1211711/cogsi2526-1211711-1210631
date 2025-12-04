@@ -1,0 +1,29 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-22.04"
+
+  config.vm.provision "ansible" do |ansible|
+      ansible.playbook = "./ansible/globalPlaybook.yml"
+      ansible.compatibility_mode = "2.0"
+  end
+
+  config.vm.define "blue" do |blue|
+    blue.vm.network "forwarded_port", guest: 8080, host: 8090
+
+    blue.vm.provision "ansible" do |ansible|
+        ansible.playbook = "./ansible/bluePlaybook.yml"
+        ansible.compatibility_mode = "2.0"
+    end
+  end
+
+  config.vm.define "green" do |green|
+    green.vm.network "forwarded_port", guest: 8080, host: 8091
+
+    green.vm.provision "ansible" do |ansible|
+        ansible.playbook = "./ansible/greenPlaybook.yml"
+        ansible.compatibility_mode = "2.0"
+    end
+  end
+end

@@ -223,6 +223,11 @@ tasks.register('intTest', Test) {
     shouldRunAfter test
 }
 
+tasks.named('test') {
+    // Use JUnit Platform for unit tests.
+    useJUnitPlatform()
+}
+
 tasks.register('startH2Server', JavaExec) {
     description = 'Starts the H2 database'
     group = "build"
