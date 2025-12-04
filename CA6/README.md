@@ -487,6 +487,179 @@ Throughout the pipeline, multiple logs were added, in order to indicate the stat
 
 ---
 
+## Alternative Solutions
+While this assignment uses **_Jenkins_** as the CI/CD tool to **automate build pipelines**, **run tests**, and **manage artifact creation**, there are several alternative technologies that provide similar capabilities and are widely used in modern DevOps environments.
+Two of the most established and cloud-friendly options in this space are **_GitHub Actions_** and **_CircleCI_**.
+
+All three solutions aim to streamline software delivery through **Continuous Integration** and **Continuous Deployment** (CI/CD), but differ significantly in **architecture**, **ease of setup**, **scalability**, and how tightly they integrate with the surrounding ecosystem.
+
+For this module, we will focus on _GitHub Actions_ as an alternative solution.
+
+### _GitHub Actions_
+_GitHub Actions_ provides a simple, integrated, and efficient way to automate the entire development workflow — from building and testing to artifact creation and deployment. Because everything **runs directly inside the _GitHub_** repository, there’s **no need to manage servers, plugins, or extra infrastructure** like with Jenkins. Pipelines are defined in YAML, making them **easy to version, reuse, and share** across teams.
+
+Its native integration with the _GitHub_ ecosystem is another major advantage: you can access **ready-to-use actions** for testing, security scans, releases, and deployments with just a few clicks. This allows teams to build complete pipelines in minutes, **improving speed, consistency, and transparency**.
+
+In the end, _GitHub Actions_ **reduces complexity**, **accelerates development**, and **simplifies build and deployment management** — offering a modern, scalable solution aligned with today’s DevOps practices.
+
+#### 1. Implementation Steps
+
+A **workflow** is the top-level automation file, **triggered by events** such as pushes, pull requests, or manual dispatch. Each workflow is composed of one or more **jobs**, which run independently or in sequence and define the logical stages of the pipeline (e.g., build, test, deploy). Jobs themselves contain **steps**, representing the individual commands or reusable actions executed during the process. **Actions** are modular units of automation that can be reused across workflows.
+
+Although these stages can be split into multiple workflows, for clarity and simplicity this implementation consolidates all stages into a single workflow with multiple jobs.
+
+1. **Defining the workflow**:
+
+```yaml
+name: Full CI/CD Pipeline
+
+on:
+  workflow_dispatch: 
+
+env:
+  DIR: CA2/Part2/gradle-migration
+  GRADLEW: ./CA2/Part2/gradle-migration/gradlew
+  BLUE_PORT: 8090
+  GREEN_PORT: 8091
+
+jobs:
+  build-and-test:
+    ...
+  deploy-blue:
+    ...
+  deploy-green-if-failed:
+    ...
+```
+
+* To mimic the jenkins environment we used the `workflow_dispatch` which allows the user to **manually run the pipeline**.
+* We define some **variables** that will be used along the workflow.
+* We define each job inside the workflow.
+
+
+2. **Build Job**
+
+```yaml
+jobs:
+
+  build-and-test:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact-path: ${{ steps.artifact-path.outputs.path }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Run Unit Tests
+        run: ${{ env.GRADLEW }} -p ${{ env.DIR }} test
+
+      - name: Publish Unit Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-report
+          path: ${{ env.DIR }}/build/reports/tests/test
+
+      - name: Create Stable Artifact
+        id: artifact-path
+        run: |
+          mkdir -p output
+          cp ${{ env.DIR }}/build/libs/*.jar output/stable-v${{ github.run_number }}.jar
+          echo "path=output/stable-v${{ github.run_number }}.jar" >> $GITHUB_OUTPUT
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: stable-jar
+          path: ${{ steps.artifact-path.outputs.path }}
+```
+
+* With the use of `actions` we checkout the repository, setup the needed tools and upload artifacts to the pipeline result.
+* With the use of `run` we can use commands to run gradle tests like `test`
+
+2. **Deploy Service**
+
+```yaml
+deploy-service:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Vagrant & Curl
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y vagrant curl
+
+      - name: Deploy to Blue VM
+        run: |
+          cd CA6/Part1
+          vagrant up blue --provision
+
+      - name: Healthcheck Blue VM
+        id: blue-health
+        run: |
+          STATUS=$(curl -m 5 -s -o /dev/null -w "%{http_code}" http://localhost:${{ env.BLUE_PORT }}/employees || true)
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          if [ "$STATUS" != "200" ]; then
+            echo "Blue VM unhealthy"
+            exit 1
+          fi
+```
+
+* This time we setup vagrant and curl, deploy the service and do the Health using inline commands by using `run`
+* In a more realistic environment the Healthcheck should be more complex using **smoke tests** in a more reliable way.
+* The wait step was not reproduce here as it cannot be coded it is instead via `environment protection rules` in _GitHub_.
+
+3. **Rollback Service**
+
+```yaml
+deploy-green-if-failed:
+    runs-on: ubuntu-latest
+    needs: deploy-blue
+    if: failure()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Vagrant
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y vagrant curl
+
+      - name: Rollback to Green VM
+        run: |
+          cd CA6/Part1
+          echo "Stopping Green VM..."
+          vagrant halt green
+          echo "Starting Green VM with last stable version..."
+          vagrant up green --provision
+
+      - name: HealthCheck Green VM
+        run: |
+          STATUS=$(curl -m 5 -s -o /dev/null -w "%{http_code}" http://localhost:${{ env.GREEN_PORT }}/employees || true)
+          if [ "$STATUS" != "200" ]; then
+            echo "Rollback failed. Green VM not healthy."
+            exit 1
+          fi
+```
+
+### Jenkins vs GitHub Actions: Key Differences and Advantages
+
+Both _**Jenkins**_ and _**GitHub Actions**_ automate CI/CD through **Infrastructure as Code**, but their approaches differ. _Jenkins_, being **self-hosted**, offers full control and customization, yet **requires** continuous **maintenance** and **operational overhead**. _GitHub Actions_ provides a **cloud-native**, integrated, and **maintenance-free workflow** directly within GitHub, making automation simpler and faster to adopt.
+In practice, _Jenkins_ suits environments needing deep customization, while _GitHub Actions_ delivers a cleaner, more efficient CI/CD experience for modern, cloud-driven development.
+
+
+---
 ## Developers
 
 | Name       |  Number | Evaluation |
