@@ -1,0 +1,81 @@
+---
+- name: Blue VM Provision
+  hosts: blue
+  become: true
+  tasks:
+    - name: Download last stable artifact version
+      get_url:
+        url: http://10.0.2.2:8080/job/cogsi2526-1211711-1210631/lastBuild/artifact/CA2/Part2/gradle-migration/build/libs/tut-rest-0.0.1-SNAPSHOT.jar
+        dest: /opt/tut-rest-0.0.1-SNAPSHOT.jar
+      ignore_errors: true
+
+    - name: Download H2 Database
+      get_url:
+        url: https://repo1.maven.org/maven2/com/h2database/h2/2.4.240/h2-2.4.240.jar
+        dest: /opt/h2-2.4.240.jar
+
+    - name: Create shared directory for H2 database
+      file:
+        path: /vagrant/h2/h2db
+        state: directory
+        mode: '0770'
+
+    - name: Create H2 server systemd service file
+      copy:
+        dest: /etc/systemd/system/h2db.service
+        content: |
+          [Unit]
+          Description=H2 Database Server
+          After=network.target
+
+          [Service]
+          ExecStart=/usr/bin/java -cp "/opt/h2-2.4.240.jar" org.h2.tools.Server -tcp -tcpAllowOthers -tcpPort 9092 -baseDir /vagrant/h2db -ifNotExists
+          User=root
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Start H2 Database service
+      systemd:
+        name: h2db
+        state: started
+        enabled: true
+
+    - name: Port HealthCheck
+      wait_for:
+        host: "localhost"
+        port: 9092
+        state: started
+        timeout: 5
+
+    - name: Wait for H2 database to be ready
+      wait_for:
+        host: localhost
+        port: 9092
+        delay: 1
+        timeout: 3
+        state: started
+      retries: 5
+      delay: 3
+
+    - name: Run the application
+      command: "java -jar tut-rest-0.0.1-SNAPSHOT.jar"
+      args:
+        chdir: /opt
+      async: 600
+      poll: 0
+
+    - name: Healthcheck
+      uri:
+        url: http://localhost:8080/employees
+        method: GET
+        return_content: true
+      register: http_check
+      until: http_check.status == 200
+      retries: 5
+      delay: 10
+      failed_when:
+        - http_check.status != 200
+        - "Unhealthy application response"
+      ignore_errors: true

@@ -1,0 +1,158 @@
+pipeline {
+     agent any
+
+     options {
+          skipStagesAfterUnstable()
+          skipDefaultCheckout(true)
+     }
+
+     environment {
+        DIR = 'CA2/Part2/gradle-migration'
+        GRADLEW = './CA2/Part2/gradle-migration/gradlew -p CA2/Part2/gradle-migration'
+        BLUE = "400"
+     }
+
+     stages {
+        stage('Repository Checkout') {
+               steps {
+                    echo 'Repository Checkout'
+                    checkout scm
+               }
+        }
+
+        stage('Build Step') {
+               steps {
+                    echo 'Generating deployment file'
+                    echo "Running Build ${env.BUILD_ID}"
+
+                    script {
+                        if (isUnix()) {
+                              sh '${GRADLEW} clean build'
+                        } else {
+                              bat '${GRADLEW} clean build'
+                        }
+                    }
+
+                    archiveArtifacts artifacts: 'CA2/Part2/gradle-migration/build/libs/*.jar'
+               }
+        }
+
+        stage('Unit Tests') {
+               steps {
+                    echo 'Unit Tests'
+
+                    script {
+                        if (isUnix()) {
+                              sh '${GRADLEW} test'
+                        } else {
+                              bat '${GRADLEW} test'
+                        }
+                    }
+               }
+        }
+
+        stage('Unit Tests HTML Report Publish') {
+               steps {
+                    echo 'Publishing Unit Tests HTML Report'
+
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'CA2/Part2/gradle-migration/build/reports/tests/test', reportFiles: 'index.html', reportName: 'Unit Tests HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+               }
+        }
+
+        stage('UI Acceptance Tests') {
+               steps {
+                    echo 'Wait for user confirmation...'
+                    timeout(time: 5, unit: 'MINUTES') {
+                         input(id: 'Deploy_Application',
+                        message: 'Deploy to Production?',
+                        ok: 'Yes')
+                    }
+               }
+        }
+
+        stage('Deploy application to Blue VM') {
+               steps {
+                    echo 'Deploy to Production in Blue VM'
+
+                    dir('CA6/Part1') {
+                        script {
+                            if (isUnix()) {
+                                  sh 'vagrant up blue --provision'
+                            } else {
+                                  bat 'vagrant up blue --provision'
+                            }
+                        }
+                    }
+               }
+        }
+
+        stage('Deployment Verification') {
+                steps {
+                    script {
+                        final String url = "http://localhost:8090/employees"
+
+                        if (isUnix()) {
+                            result = sh(script: 'curl -m 5 -s -o /dev/null -w \"%{http_code}\" http://localhost:8090/employees', returnStdout: true)
+                            if (result == '200' || result == '302') {
+                                echo 'Web application up and running on Blue VM!'
+                                env.BLUE = "200"
+                            } else {
+                                echo "Error on Blue VM. Status: ${result}"
+                                error("Error on Blue VM. Status: ${result}")
+                            }
+                        } else {
+                            bat(script: "curl -s -o -w $url", returnStdout: true)
+                            echo 'Web application up and running!'
+                        }
+                    }
+                }
+        }
+
+     }
+
+    post {
+       success {
+            echo 'Build was successful!'
+            script {
+                def myTag = "stable-v${env.BUILD_NUMBER}"
+
+                sh "cp CA2/Part2/gradle-migration/build/libs/tut-rest-0.0.1-SNAPSHOT.jar CA2/Part2/gradle-migration/build/libs/stable-v${env.BUILD_NUMBER}.jar"
+            }
+
+            archiveArtifacts artifacts: "CA2/Part2/gradle-migration/build/libs/stable-v${env.BUILD_NUMBER}.jar"
+            echo 'Repository commit tag updated with the build result.'
+       }
+
+       always {
+            echo "Build result: ${currentBuild.currentResult}"
+       }
+
+       failure {
+            echo "Build failed!"
+
+            dir('CA6/Part1') {
+                script {
+                    if (env.BLUE != "200") {
+                        echo "Starting Rollback..."
+
+                        echo "Stopping Green VM..."
+                        sh "vagrant halt green"
+
+                        echo "Starting Green VM with last stable version..."
+                        sh "vagrant up green --provision"
+
+                        echo "Starting Green HealthCheck..."
+                        result = sh(script: 'curl -m 5 -s -o /dev/null -w \"%{http_code}\" http://localhost:8091/employees', returnStdout: true)
+                        if (result == '200' || result == '302') {
+                            echo 'Web application up and running on Green VM!'
+                            env.BLUE = "200"
+                        } else {
+                            echo "Error on Green VM. Status: ${result}"
+                            error("Error on Green VM. Status: ${result}")
+                        }
+                    }
+                }
+            }
+       }
+    }
+}
